@@ -2,6 +2,10 @@
     "build": {
         "dockerfile": "./Dockerfile"
     },
+    "extensions": [
+        "golang.go",
+        "timonwong.shellcheck"
+    ],
     "overrideCommand": false,
     "runArgs": [
         "--shm-size=512m"
