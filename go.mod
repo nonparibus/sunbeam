@@ -1,4 +1,4 @@
-module changeme
+module github.com/pomdtr/raycast-linux
 
 go 1.17
 
