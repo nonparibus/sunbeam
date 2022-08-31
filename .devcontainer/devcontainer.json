@@ -1,0 +1,23 @@
+{
+    "build": {
+        "dockerfile": "./Dockerfile"
+    },
+    "overrideCommand": false,
+    "runArgs": [
+        "--shm-size=512m"
+    ],
+    "forwardPorts": [
+        6901
+    ],
+    "portsAttributes": {
+        "6901": {
+            "label": "VNC Server",
+            "onAutoForward": "notify",
+            "protocol": "https"
+        }
+    },
+    "postCreateCommand": "./.devcontainer/post-create.sh",
+    "containerEnv": {
+        "VNC_PW": "password"
+    }
+}
