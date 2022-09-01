@@ -1,5 +1,11 @@
-import {render} from 'preact';
-import {App} from './app';
-import './style.css';
+import { render } from "react-dom";
+import { RaycastCMDK } from "./components/raycast";
+import "./globals.scss";
+import { WindowMinimise } from "../wailsjs/runtime";
 
-render(<App/>, document.getElementById('app')!);
+render(<RaycastCMDK />, document.getElementById("app")!);
+
+// Minimise the window when unfocused
+window.onblur = () => {
+  WindowMinimise();
+};
