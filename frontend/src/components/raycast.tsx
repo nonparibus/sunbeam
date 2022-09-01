@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import * as Popover from "@radix-ui/react-popover";
 import "./raycast.scss";
 import { Command } from "cmdk";
@@ -15,11 +15,19 @@ import {
   StarIcon,
   WindowIcon,
 } from "./icons";
+import {Search} from "../../wailsjs/go/main/App"
 
 export function RaycastCMDK() {
   const [value, setValue] = React.useState("linear");
+  const [query, setQuery] = React.useState("")
+  const [items, setItems] = React.useState([])
+  
   const inputRef = React.useRef<HTMLInputElement | null>(null);
   const listRef = React.useRef(null);
+
+  useEffect(() => {
+    Search(query);
+  }, [query]);
 
   React.useEffect(() => {
     inputRef?.current?.focus();
@@ -27,10 +35,12 @@ export function RaycastCMDK() {
 
   return (
     <div className="raycast">
-      <Command value={value} onValueChange={(v) => setValue(v)}>
+      <Command shouldFilter={false} value={value} onValueChange={(v) => setValue(v)}>
         <div cmdk-raycast-top-shine="" />
         <Command.Input
           ref={inputRef}
+          value={query}
+          onValueChange={setQuery}
           autoFocus
           placeholder="Search for apps and commands..."
         />

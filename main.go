@@ -16,16 +16,15 @@ func main() {
 
 	// Create application with options
 	err := wails.Run(&options.App{
-		Title:         "raycast-linux",
-		Width:         1024,
-		Height:        768,
-		Assets:        assets,
-		Frameless:     true,
-		DisableResize: true,
+		Title:     "raycast-linux",
+		Assets:    assets,
+		Frameless: true,
+		// Buggy on linux
+		// DisableResize: true,
 
 		AlwaysOnTop: true,
-		MaxWidth:    750,
-		MaxHeight:   475,
+		Width:       750,
+		Height:      475,
 
 		OnStartup: app.startup,
 		Bind: []interface{}{
