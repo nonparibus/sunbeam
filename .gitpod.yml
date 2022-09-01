@@ -4,3 +4,12 @@ vscode:
   extensions:
   - golang.go
   - timonwong.shellcheck
+ports:
+  - port: 6080
+    visibility: private
+    onOpen: open-preview
+
+tasks:
+  - init: |
+      go mod download
+      cd frontent && npm install
