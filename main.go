@@ -22,7 +22,7 @@ func main() {
 		// Buggy on linux
 		// DisableResize: true,
 
-		AlwaysOnTop: true,
+		AlwaysOnTop: false,
 		Width:       750,
 		Height:      475,
 

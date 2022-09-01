@@ -14,14 +14,19 @@ import {
   HammerIcon,
   StarIcon,
   WindowIcon,
+  TerminalIcon,
 } from "./icons";
-import {Search} from "../../wailsjs/go/main/App"
+import { Search } from "../../wailsjs/go/main/App"
+import { EventsOn } from "../../wailsjs/runtime"
 
 export function RaycastCMDK() {
   const [value, setValue] = React.useState("linear");
   const [query, setQuery] = React.useState("")
-  const [items, setItems] = React.useState([])
-  
+  const [items, setItems] = React.useState<any[]>([])
+
+  EventsOn("update", setItems)
+
+
   const inputRef = React.useRef<HTMLInputElement | null>(null);
   const listRef = React.useRef(null);
 
@@ -46,60 +51,14 @@ export function RaycastCMDK() {
         />
         <hr cmdk-raycast-loader="" />
         <Command.List ref={listRef}>
-          <Command.Empty>No results found.</Command.Empty>
-          <Command.Group heading="Suggestions">
-            <Item value="Linear">
-              <Logo>
-                <LinearIcon
-                  style={{
-                    width: 12,
-                    height: 12,
-                  }}
-                />
-              </Logo>
-              Linear
-            </Item>
-            <Item value="Figma">
-              <Logo>
-                <FigmaIcon />
-              </Logo>
-              Figma
-            </Item>
-            <Item value="Slack">
-              <Logo>
-                <SlackIcon />
-              </Logo>
-              Slack
-            </Item>
-            <Item value="YouTube">
-              <Logo>
-                <YouTubeIcon />
-              </Logo>
-              YouTube
-            </Item>
-            <Item value="Raycast">
-              <Logo>
-                <RaycastIcon />
-              </Logo>
-              Raycast
-            </Item>
-          </Command.Group>
-          <Command.Group heading="Commands">
-            <Item isCommand value="Clipboard History">
-              <Logo>
-                <ClipboardIcon />
-              </Logo>
-              Clipboard History
-            </Item>
-            <Item isCommand value="Import Extension">
-              <HammerIcon />
-              Import Extension
-            </Item>
-            <Item isCommand value="Manage Extensions">
-              <HammerIcon />
-              Manage Extensions
-            </Item>
-          </Command.Group>
+          <Command.Empty>{query ? "No Result Found." : "Provide a Query"}</Command.Empty>
+            {items.map(item => 
+              <Item value={item.name}>
+                <Logo>
+                  <TerminalIcon/>
+                </Logo>{item.name}
+              </Item>
+            )}
         </Command.List>
 
         <div cmdk-raycast-footer="">
@@ -133,7 +92,7 @@ function Item({
   isCommand?: boolean;
 }) {
   return (
-    <Command.Item value={value} onSelect={() => {}}>
+    <Command.Item value={value} onSelect={() => { }}>
       {children}
       <span cmdk-raycast-meta="">{isCommand ? "Command" : "Application"}</span>
     </Command.Item>
