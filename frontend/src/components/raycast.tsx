@@ -193,19 +193,19 @@ function SubCommand({
         <Command>
           <Command.List>
             <Command.Group heading={selectedValue}>
-              <SubItem shortcut="↵">
+              <SubItem>
                 <WindowIcon />
                 Open Application
               </SubItem>
-              <SubItem shortcut="⌘ ↵">
+              <SubItem>
                 <FinderIcon />
                 Show in Finder
               </SubItem>
-              <SubItem shortcut="⌘ I">
+              <SubItem>
                 <FinderIcon />
                 Show Info in Finder
               </SubItem>
-              <SubItem shortcut="⌘ ⇧ F">
+              <SubItem>
                 <StarIcon />
                 Add to Favorites
               </SubItem>
@@ -223,13 +223,13 @@ function SubItem({
   shortcut,
 }: {
   children: React.ReactNode;
-  shortcut: string;
+  shortcut?: string;
 }) {
   return (
     <Command.Item>
       {children}
       <div cmdk-raycast-submenu-shortcuts="">
-        {shortcut.split(" ").map((key) => {
+        {shortcut?.split(" ").map((key) => {
           return <kbd key={key}>{key}</kbd>;
         })}
       </div>

@@ -190,6 +190,7 @@
 
   [cmdk-list] {
     padding: 0 8px;
+    height: 393px;
     overflow: auto;
     overscroll-behavior: contain;
     scroll-padding-block-end: 40px;
@@ -398,6 +399,8 @@
   [cmdk-list] {
     padding: 8px;
     overflow: auto;
+    height: auto;
+    max-height: 200px;
     overscroll-behavior: contain;
     transition: 100ms ease;
     transition-property: height;
@@ -435,6 +438,7 @@
     }
 
     svg {
+      margin-right: 5px;
       width: 16px;
       height: 16px;
     }
