@@ -35,8 +35,8 @@ func main() {
 		Height:      475,
 
 		OnStartup:  app.startup,
-		OnDomReady: app.domReady,
 		OnShutdown: app.shutdown,
+		OnDomReady: app.ready,
 		Bind: []interface{}{
 			app,
 		},

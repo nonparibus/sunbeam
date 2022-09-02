@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"encoding/json"
 	"io"
 	"os/exec"
@@ -12,7 +11,7 @@ type PopLauncher struct {
 	io.ReadCloser
 	io.WriteCloser
 	*json.Encoder
-	*bufio.Scanner
+	*json.Decoder
 }
 
 func NewPopLauncher(cmd *exec.Cmd) (launcher *PopLauncher) {
@@ -34,7 +33,11 @@ func (p *PopLauncher) Start() error {
 		return nil
 	}
 	p.ReadCloser = stdout
-	p.Scanner = bufio.NewScanner(stdout)
+	p.Decoder = json.NewDecoder(stdout)
+
+	if err = p.cmd.Start(); err != nil {
+		return err
+	}
 
 	return nil
 }

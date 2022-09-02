@@ -9,22 +9,34 @@ import {
   WindowIcon,
   TerminalIcon,
 } from "./icons";
-import { Search } from "../../wailsjs/go/main/App"
-import { EventsOn } from "../../wailsjs/runtime"
+import * as App from "../../wailsjs/go/main/App"
+import * as runtime from "../../wailsjs/runtime/runtime"
+import { isUpdateResponse, SearchResult } from "./response";
 
 export function RaycastCMDK() {
-  const [value, setValue] = React.useState("linear");
-  const [query, setQuery] = React.useState("")
-  const [items, setItems] = React.useState<{id: number, name: string}[]>([])
-
-  // EventsOn("update", setItems)
-
-
   const inputRef = React.useRef<HTMLInputElement | null>(null);
   const listRef = React.useRef(null);
+  const [value, setValue] = React.useState("linear");
+  const [query, setQuery] = React.useState("")
+  const [items, setItems] = React.useState<SearchResult[]>([])
+  runtime.LogDebug(JSON.stringify(items))
 
   useEffect(() => {
-    Search(query);
+    runtime.EventsOn("update", (event) => {
+      if (isUpdateResponse(event)) {
+        setItems(event.Update)
+        return;
+      }
+      return runtime.LogError(`No handler for : ${JSON.stringify(event)}`)
+    })
+    return () => {
+      runtime.EventsOff("update")
+    }
+  }, [])
+
+
+  useEffect(() => {
+    App.Search(query);
   }, [query]);
 
   React.useEffect(() => {
@@ -44,9 +56,9 @@ export function RaycastCMDK() {
         />
         <hr cmdk-raycast-loader="" />
         <Command.List ref={listRef}>
-          <Command.Empty>{query ? "No Result Found." : "Provide a Query"}</Command.Empty>
+          <Command.Empty>{query ? "No Result Found." : "Type Something !"}</Command.Empty>
             {items.map(item => 
-              <Item value={item.name} onSelect={() => {}}>
+              <Item item={item} onSelect={() => {}}>
                 <Logo>
                   <TerminalIcon/>
                 </Logo>{item.name}
@@ -77,19 +89,19 @@ export function RaycastCMDK() {
 
 function Item({
   children,
-  value,
+  item,
   onSelect,
   isCommand = false,
 }: {
   children: React.ReactNode;
   onSelect: () => void;
-  value: string;
+  item: SearchResult;
   isCommand?: boolean;
 }) {
   return (
-    <Command.Item value={value} onSelect={onSelect}>
+    <Command.Item value={item.name} onSelect={onSelect}>
       {children}
-      <span cmdk-raycast-meta="">{isCommand ? "Command" : "Application"}</span>
+      <span cmdk-raycast-meta="">{item.category_icon.Name}</span>
     </Command.Item>
   );
 }

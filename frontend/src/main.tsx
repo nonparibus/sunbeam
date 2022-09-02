@@ -1,5 +1,5 @@
 import { createRoot } from "react-dom/client";
-import { RaycastCMDK } from "./components/raycast";
+import { RaycastCMDK } from "./launcher/raycast";
 import "./globals.scss";
 import { WindowMinimise } from "../wailsjs/runtime";
 

@@ -24,12 +24,19 @@ func (a *App) Search(query string) {
 }
 
 func (a *App) Activate(itemID int) {
+	runtime.LogDebug(a.ctx, fmt.Sprintf("Activate Item: %d", itemID))
 	a.launcher.Encode(ActivateRequest{itemID})
 }
 
 func (a *App) emitUpdates() {
-	for a.launcher.Scan() {
-		update := a.launcher.Text()
+	var update interface{}
+	for {
+		err := a.launcher.Decode(&update)
+		if err != nil {
+			runtime.LogErrorf(a.ctx, "Decoding error: %s", err)
+			continue
+		}
+		runtime.LogDebug(a.ctx, "Update Emitted")
 		runtime.EventsEmit(a.ctx, "update", update)
 	}
 }
@@ -43,10 +50,10 @@ func (a *App) startup(ctx context.Context) {
 	if err != nil {
 		runtime.LogFatalf(ctx, "Unable to start launcher: %s", err)
 	}
-
 }
 
-func (a *App) domReady(ctx context.Context) {
+func (a *App) ready(ctx context.Context) {
+	runtime.LogDebugf(a.ctx, "Starting emit Loop")
 	go a.emitUpdates()
 }
 
