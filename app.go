@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"os/exec"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
@@ -18,9 +19,14 @@ func NewApp(launcher *PopLauncher) *App {
 	return &App{launcher: launcher}
 }
 
+// TODO: return most used apps if query is empty
 func (a *App) Search(query string) {
 	runtime.LogDebug(a.ctx, fmt.Sprintf("User Query: %s", query))
 	a.launcher.Encode(SearchRequest{query})
+}
+
+func (a *App) ListRecentApplications(query string) {
+
 }
 
 func (a *App) Activate(itemID int) {
@@ -28,25 +34,35 @@ func (a *App) Activate(itemID int) {
 	a.launcher.Encode(ActivateRequest{itemID})
 }
 
+func (a *App) OpenApp(path string) (err error) {
+	cmd := exec.Command("xdg-open", path)
+	err = cmd.Run()
+	if err != nil {
+		runtime.LogErrorf(a.ctx, "An error occured when opening %s", err)
+	}
+	return
+}
+
+func (a *App) Complete(itemID int) {
+	runtime.LogDebug(a.ctx, fmt.Sprintf("Complete Item: %d", itemID))
+	a.launcher.Encode(CompleteRequest{itemID})
+}
+
+func (a *App) Quit(itemID int) {
+	a.launcher.Encode(QuitRequest{itemID})
+}
+
 func (a *App) Context(itemID int) {
-	runtime.LogDebug(a.ctx, fmt.Sprintf("Activate Item: %d", itemID))
+	runtime.LogDebug(a.ctx, fmt.Sprintf("Context Item: %d", itemID))
 	a.launcher.Encode(ContextRequest{itemID})
 }
 
-func (a *App) ActivateContext(itemId int, contextId int) {
-	runtime.LogDebug(a.ctx, fmt.Sprintf("Activate Item: %d", itemID))
+func (a *App) ActivateContext(itemID int, contextID int) {
+	runtime.LogDebug(a.ctx, fmt.Sprintf("Activate Context for item: %d", itemID))
 	a.launcher.Encode(ActivateContextRequest{ActivateContext{
-		itemId,
-		contextId,
+		itemID,
+		contextID,
 	}})
-}
-
-func (a *App) Complete(itemId int) {
-	a.launcher.Encode(CompleteRequest{itemId})
-}
-
-func (a *App) Quit(itemId int) {
-	a.launcher.Encode(QuitRequest{itemId})
 }
 
 func (a *App) emitUpdates() {
@@ -54,10 +70,9 @@ func (a *App) emitUpdates() {
 	for {
 		err := a.launcher.Decode(&update)
 		if err != nil {
-			runtime.LogErrorf(a.ctx, "Decoding error: %s", err)
-			continue
+			runtime.LogFatalf(a.ctx, "Decoding error: %s", err)
+			panic(err)
 		}
-		runtime.LogDebug(a.ctx, "Update Emitted")
 		runtime.EventsEmit(a.ctx, "update", update)
 	}
 }

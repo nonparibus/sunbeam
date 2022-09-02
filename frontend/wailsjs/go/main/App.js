@@ -6,12 +6,28 @@ export function Activate(arg1) {
   return window['go']['main']['App']['Activate'](arg1);
 }
 
-export function ActivateContext(arg1) {
-  return window['go']['main']['App']['ActivateContext'](arg1);
+export function ActivateContext(arg1, arg2) {
+  return window['go']['main']['App']['ActivateContext'](arg1, arg2);
+}
+
+export function Complete(arg1) {
+  return window['go']['main']['App']['Complete'](arg1);
 }
 
 export function Context(arg1) {
   return window['go']['main']['App']['Context'](arg1);
+}
+
+export function ListRecentApplications(arg1) {
+  return window['go']['main']['App']['ListRecentApplications'](arg1);
+}
+
+export function OpenApp(arg1) {
+  return window['go']['main']['App']['OpenApp'](arg1);
+}
+
+export function Quit(arg1) {
+  return window['go']['main']['App']['Quit'](arg1);
 }
 
 export function Search(arg1) {

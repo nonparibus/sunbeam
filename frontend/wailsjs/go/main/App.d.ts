@@ -3,8 +3,16 @@
 
 export function Activate(arg1:number):void;
 
-export function ActivateContext(arg1:number):void;
+export function ActivateContext(arg1:number,arg2:number):void;
+
+export function Complete(arg1:number):void;
 
 export function Context(arg1:number):void;
+
+export function ListRecentApplications(arg1:string):void;
+
+export function OpenApp(arg1:string):Promise<Error>;
+
+export function Quit(arg1:number):void;
 
 export function Search(arg1:string):void;
