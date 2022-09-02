@@ -3,4 +3,8 @@
 
 export function Activate(arg1:number):void;
 
+export function ActivateContext(arg1:number):void;
+
+export function Context(arg1:number):void;
+
 export function Search(arg1:string):void;

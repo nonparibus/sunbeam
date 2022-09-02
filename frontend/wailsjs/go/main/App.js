@@ -6,6 +6,14 @@ export function Activate(arg1) {
   return window['go']['main']['App']['Activate'](arg1);
 }
 
+export function ActivateContext(arg1) {
+  return window['go']['main']['App']['ActivateContext'](arg1);
+}
+
+export function Context(arg1) {
+  return window['go']['main']['App']['Context'](arg1);
+}
+
 export function Search(arg1) {
   return window['go']['main']['App']['Search'](arg1);
 }

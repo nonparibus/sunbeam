@@ -28,6 +28,27 @@ func (a *App) Activate(itemID int) {
 	a.launcher.Encode(ActivateRequest{itemID})
 }
 
+func (a *App) Context(itemID int) {
+	runtime.LogDebug(a.ctx, fmt.Sprintf("Activate Item: %d", itemID))
+	a.launcher.Encode(ContextRequest{itemID})
+}
+
+func (a *App) ActivateContext(itemId int, contextId int) {
+	runtime.LogDebug(a.ctx, fmt.Sprintf("Activate Item: %d", itemID))
+	a.launcher.Encode(ActivateContextRequest{ActivateContext{
+		itemId,
+		contextId,
+	}})
+}
+
+func (a *App) Complete(itemId int) {
+	a.launcher.Encode(CompleteRequest{itemId})
+}
+
+func (a *App) Quit(itemId int) {
+	a.launcher.Encode(QuitRequest{itemId})
+}
+
 func (a *App) emitUpdates() {
 	var update interface{}
 	for {
