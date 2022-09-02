@@ -12,4 +12,4 @@ ports:
 tasks:
   - init: |
       go mod download
-      cd frontent && npm install
+      cd frontend && npm install
