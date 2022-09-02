@@ -15,9 +15,9 @@ type PopLauncher struct {
 	*bufio.Scanner
 }
 
-func NewPopLauncher(path string) (launcher *PopLauncher) {
+func NewPopLauncher(cmd *exec.Cmd) (launcher *PopLauncher) {
 	return &PopLauncher{
-		cmd: exec.Command(path),
+		cmd: cmd,
 	}
 }
 

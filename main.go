@@ -3,6 +3,7 @@ package main
 import (
 	"embed"
 	"os"
+	"os/exec"
 	"path"
 
 	"github.com/wailsapp/wails/v2"
@@ -13,11 +14,12 @@ import (
 var assets embed.FS
 
 func main() {
-	// Create an instance of the app structure
 	homedir, _ := os.UserHomeDir()
 	launcherPath := path.Join(homedir, ".local", "bin", "pop-launcher")
-	launcher := NewPopLauncher(launcherPath)
+	launcherCmd := exec.Command(launcherPath)
+	launcher := NewPopLauncher(launcherCmd)
 
+	// Create an instance of the app structure
 	app := NewApp(launcher)
 
 	// Create application with options
