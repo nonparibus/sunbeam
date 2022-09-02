@@ -1,14 +1,18 @@
 package main
 
 import (
+	"bufio"
 	"encoding/json"
+	"io"
 	"os/exec"
 )
 
 type PopLauncher struct {
 	cmd *exec.Cmd
+	io.ReadCloser
+	io.WriteCloser
 	*json.Encoder
-	*json.Decoder
+	*bufio.Scanner
 }
 
 func NewPopLauncher(path string) (launcher *PopLauncher) {
@@ -17,22 +21,26 @@ func NewPopLauncher(path string) (launcher *PopLauncher) {
 	}
 }
 
-func (launcher *PopLauncher) Start() (err error) {
-	stdin, err := launcher.cmd.StdinPipe()
+func (p *PopLauncher) Start() error {
+	stdin, err := p.cmd.StdinPipe()
 	if err != nil {
-		return
+		return nil
 	}
-	launcher.Encoder = json.NewEncoder(stdin)
+	p.WriteCloser = stdin
+	p.Encoder = json.NewEncoder(stdin)
 
-	stdout, err := launcher.cmd.StdoutPipe()
+	stdout, err := p.cmd.StdoutPipe()
 	if err != nil {
-		return
+		return nil
 	}
-	launcher.Decoder = json.NewDecoder(stdout)
+	p.ReadCloser = stdout
+	p.Scanner = bufio.NewScanner(stdout)
 
-	return launcher.cmd.Start()
+	return nil
 }
 
-func (p *PopLauncher) Stop() {
+func (p *PopLauncher) Close() {
+	p.ReadCloser.Close()
+	p.WriteCloser.Close()
 	p.cmd.Process.Kill()
 }

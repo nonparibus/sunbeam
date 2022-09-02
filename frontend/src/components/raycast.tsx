@@ -4,14 +4,7 @@ import "./raycast.scss";
 import { Command } from "cmdk";
 import {
   Logo,
-  LinearIcon,
-  FigmaIcon,
-  SlackIcon,
-  YouTubeIcon,
-  RaycastIcon,
-  ClipboardIcon,
   FinderIcon,
-  HammerIcon,
   StarIcon,
   WindowIcon,
   TerminalIcon,
@@ -22,9 +15,9 @@ import { EventsOn } from "../../wailsjs/runtime"
 export function RaycastCMDK() {
   const [value, setValue] = React.useState("linear");
   const [query, setQuery] = React.useState("")
-  const [items, setItems] = React.useState<any[]>([])
+  const [items, setItems] = React.useState<{id: number, name: string}[]>([])
 
-  EventsOn("update", setItems)
+  // EventsOn("update", setItems)
 
 
   const inputRef = React.useRef<HTMLInputElement | null>(null);
@@ -53,7 +46,7 @@ export function RaycastCMDK() {
         <Command.List ref={listRef}>
           <Command.Empty>{query ? "No Result Found." : "Provide a Query"}</Command.Empty>
             {items.map(item => 
-              <Item value={item.name}>
+              <Item value={item.name} onSelect={() => {}}>
                 <Logo>
                   <TerminalIcon/>
                 </Logo>{item.name}
@@ -85,14 +78,16 @@ export function RaycastCMDK() {
 function Item({
   children,
   value,
+  onSelect,
   isCommand = false,
 }: {
   children: React.ReactNode;
+  onSelect: () => void;
   value: string;
   isCommand?: boolean;
 }) {
   return (
-    <Command.Item value={value} onSelect={() => { }}>
+    <Command.Item value={value} onSelect={onSelect}>
       {children}
       <span cmdk-raycast-meta="">{isCommand ? "Command" : "Application"}</span>
     </Command.Item>

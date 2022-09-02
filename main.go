@@ -2,6 +2,8 @@ package main
 
 import (
 	"embed"
+	"os"
+	"path"
 
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/options"
@@ -12,7 +14,11 @@ var assets embed.FS
 
 func main() {
 	// Create an instance of the app structure
-	app := NewApp()
+	homedir, _ := os.UserHomeDir()
+	launcherPath := path.Join(homedir, ".local", "bin", "pop-launcher")
+	launcher := NewPopLauncher(launcherPath)
+
+	app := NewApp(launcher)
 
 	// Create application with options
 	err := wails.Run(&options.App{
@@ -26,7 +32,9 @@ func main() {
 		Width:       750,
 		Height:      475,
 
-		OnStartup: app.startup,
+		OnStartup:  app.startup,
+		OnDomReady: app.domReady,
+		OnShutdown: app.shutdown,
 		Bind: []interface{}{
 			app,
 		},
