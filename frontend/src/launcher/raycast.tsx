@@ -7,7 +7,7 @@ import {
 } from "./icons";
 import * as App from "../../wailsjs/go/main/App"
 import * as runtime from "../../wailsjs/runtime/runtime"
-import { IconSource, isDesktopEntryResponse, isFillResponse, isMimeIcon, isNamedIcon as isSystemIcon, isUpdateResponse, SearchResult } from "./response";
+import { IconSource, isCloseResponse, isDesktopEntryResponse, isFillResponse, isMimeIcon, isNamedIcon as isSystemIcon, isUpdateResponse, SearchResult } from "./response";
 
 window.onblur = () => {
   runtime.WindowHide()
@@ -19,12 +19,13 @@ export function RaycastCMDK() {
   const [focusedItem, setFocusedItem] = React.useState<SearchResult>();
   const [query, setQuery] = React.useState("")
   const [items, setItems] = React.useState<SearchResult[]>([])
+  runtime.LogDebug(JSON.stringify(focusedItem))
 
   React.useEffect(() => {
     runtime.EventsOn("toggle", () => {
       runtime.WindowCenter()
       runtime.WindowShow()
-    })    
+    })
     return () => {
       runtime.EventsOff("toggle")
     }
@@ -69,9 +70,7 @@ export function RaycastCMDK() {
       if (isUpdateResponse(update)) {
         const items = update.Update
         setItems(items)
-        if (items.length > 0) {
-          setFocusedItem(items[0])
-        }
+        setFocusedItem(items[0])
         return;
       }
       if (isDesktopEntryResponse(update)) {
@@ -82,6 +81,10 @@ export function RaycastCMDK() {
         setQuery(update.Fill)
         return;
       }
+      if (isCloseResponse(update)) {
+        runtime.WindowHide()
+        setQuery("")
+      } 
       return runtime.LogError(`No handler for : ${JSON.stringify(update)}`)
     })
     return () => {
@@ -99,10 +102,12 @@ export function RaycastCMDK() {
 
   return (
     <div className="raycast">
-      <Command shouldFilter={false} value={focusedItem?.id.toString() || "-1"} onValueChange={(v) => {
-        const index = parseInt(v)
-        setFocusedItem(items[index])
-      }}>
+      <Command shouldFilter={false}
+        value={focusedItem?.id.toString() || "-1"} onValueChange={(v) => {
+          const index = parseInt(v)
+          setFocusedItem(items[index])
+        }}
+      >
         <div cmdk-raycast-top-shine="" />
         <Command.Input
           ref={inputRef}
@@ -117,9 +122,7 @@ export function RaycastCMDK() {
           {items.length > 0 ?
             <Command.Group heading="Results">
               {items.map(item =>
-                <Item key={item.name} item={item} />
-
-
+                <Item item={item} />
               )}
             </Command.Group>
             : null}
