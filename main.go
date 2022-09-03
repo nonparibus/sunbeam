@@ -4,7 +4,6 @@ import (
 	"embed"
 	"fmt"
 	"log"
-	"os"
 	"os/exec"
 
 	"github.com/wailsapp/wails/v2"
@@ -17,11 +16,7 @@ var assets embed.FS
 func main() {
 	var err error
 
-	launcherPath := "/usr/bin/pop-launcher"
-	if os.Stat(launcherPath); os.IsNotExist(err) {
-		log.Fatalf("Pop Launcher not found!")
-	}
-	launcherCmd := exec.Command(launcherPath)
+	launcherCmd := exec.Command("pop-launcher")
 	launcher := NewPopLauncher(launcherCmd)
 
 	iconFinder := NewIconFinder()
