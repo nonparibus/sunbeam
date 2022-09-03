@@ -10,11 +10,7 @@ RUN curl -q 'https://proget.makedeb.org/debian-feeds/prebuilt-mpr.pub' \
         | sudo tee /etc/apt/sources.list.d/prebuilt-mpr.list \
     && sudo apt update \
     && sudo apt install just
-
-# Install pop launcher system wide
-RUN git clone https://github.com/pop-os/launcher \
-    && cd launcher \
-    && just \
-    && sudo just rootdir=/ install
+    
+RUN go install github.com/wailsapp/wails/v2/cmd/wails@latest
 
 ENV DESKTOP_SESSION xfce

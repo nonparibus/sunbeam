@@ -8,6 +8,8 @@ ports:
   - port: 6080
     visibility: private
     onOpen: open-preview
+additionalRepositories:
+  - url: https://github.com/pop-os/launcher
 
 tasks:
   - init: |

@@ -41,7 +41,7 @@ func main() {
 
 	// Create application with options
 	err = wails.Run(&options.App{
-		Title:     "raycast-linux",
+		Title:     "Raycast",
 		Assets:    assets,
 		Frameless: true,
 		// Buggy on linux

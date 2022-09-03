@@ -1,0 +1,4 @@
+#!/bin/sh
+
+DIRNAME=$( dirname "$(readlink -f -- "$0")" )
+exec "$DIRNAME/usr/bin/raycast"
