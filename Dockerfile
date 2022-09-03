@@ -11,3 +11,5 @@ RUN git clone https://github.com/pop-os/launcher \
     && sudo $(which just) rootDir=/ install
 
 RUN go install github.com/wailsapp/wails/v2/cmd/wails@latest
+
+ENV DESKTOP_SESSION xfce

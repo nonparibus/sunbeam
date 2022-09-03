@@ -3,13 +3,10 @@ package main
 import (
 	"embed"
 	"fmt"
-	"net/http"
+	"log"
 	"os"
 	"os/exec"
-	"path"
-	"strings"
 
-	"github.com/adrg/xdg"
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/options"
 )
@@ -17,73 +14,40 @@ import (
 //go:embed frontend/dist
 var assets embed.FS
 
-type FileLoader struct {
-	http.Handler
-}
-
-func NewFileLoader() *FileLoader {
-	return &FileLoader{}
-}
-
-var iconThemes = []string{
-	"Adwaita",
-	"hicolor",
-}
-
-func getSystemIconPath(iconName string) (string, error) {
-	return "/usr/share/icons/hicolor/24x24/apps/Thunar.png", nil
-	var iconPath string
-	for _, xdgDataDir := range xdg.DataDirs {
-		for _, theme := range iconThemes {
-			iconPath = fmt.Sprintf("%s/icons/%s/24x24/apps/%s", xdgDataDir, theme, iconName)
-			if _, err := os.Stat(iconPath); !os.IsNotExist(err) {
-				return iconPath, nil
-			}
-			iconPath = fmt.Sprintf("%s/icons/%s/apps/24/%s", xdgDataDir, theme, iconName)
-			if _, err := os.Stat(iconPath); !os.IsNotExist(err) {
-				return iconPath, nil
-			}
-		}
-	}
-	return "", fmt.Errorf("No icon found for %s", iconName)
-}
-
-func (h *FileLoader) ServeHTTP(res http.ResponseWriter, req *http.Request) {
-	iconName := strings.TrimPrefix(req.URL.Path, "/")
-	// iconType := req.URL.Query().Get("type")
-	iconPath, err := getSystemIconPath(iconName)
-	if err != nil {
-		res.WriteHeader(http.StatusBadRequest)
-		res.Write([]byte(fmt.Sprintf("Could not find icon %s", iconName)))
-	}
-
-	fileData, err := os.ReadFile(iconPath)
-	if err != nil {
-		res.WriteHeader(http.StatusBadRequest)
-		res.Write([]byte(fmt.Sprintf("Could not load icon %s", iconName)))
-	}
-
-	res.Header().Set("content-type", "image/png")
-	res.Write(fileData)
-}
-
 func main() {
-	homedir, _ := os.UserHomeDir()
-	launcherPath := path.Join(homedir, ".local", "bin", "pop-launcher")
+	var err error
+
+	launcherPath := "/usr/bin/pop-launcher"
+	if os.Stat(launcherPath); os.IsNotExist(err) {
+		log.Fatalf("Pop Launcher not found!")
+	}
 	launcherCmd := exec.Command(launcherPath)
 	launcher := NewPopLauncher(launcherCmd)
+
+	iconFinder := NewIconFinder()
+
+	for _, theme := range []string{"hicolor", "Humanity", "Adwaita"} {
+		err = iconFinder.loadThemeIcons(fmt.Sprintf("/usr/share/icons/%s", theme))
+		if err != nil {
+			log.Fatalf("Theme not found: %s", theme)
+		}
+	}
+
+	if err != nil {
+		log.Fatalf("Unable to load theme: %s", err)
+	}
 
 	// Create an instance of the app structure
 	app := NewApp(launcher)
 
 	// Create application with options
-	err := wails.Run(&options.App{
+	err = wails.Run(&options.App{
 		Title:     "raycast-linux",
 		Assets:    assets,
 		Frameless: true,
 		// Buggy on linux
 		// DisableResize: true,
-		AssetsHandler: NewFileLoader(),
+		AssetsHandler: NewFileLoader(iconFinder),
 
 		AlwaysOnTop: false,
 		Width:       750,

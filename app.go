@@ -21,7 +21,6 @@ func NewApp(launcher *PopLauncher) *App {
 
 // TODO: return most used apps if query is empty
 func (a *App) Search(query string) {
-	runtime.LogDebug(a.ctx, fmt.Sprintf("User Query: %s", query))
 	a.launcher.Encode(SearchRequest{query})
 }
 

@@ -2,10 +2,7 @@ module github.com/pomdtr/raycast-linux
 
 go 1.17
 
-require (
-	github.com/adrg/xdg v0.4.0
-	github.com/wailsapp/wails/v2 v2.0.0-beta.44.2
-)
+require github.com/wailsapp/wails/v2 v2.0.0-beta.44.2
 
 require (
 	github.com/bep/debounce v1.2.1 // indirect

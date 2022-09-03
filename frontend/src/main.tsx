@@ -1,7 +1,7 @@
 import { createRoot } from "react-dom/client";
 import { RaycastCMDK } from "./launcher/raycast";
 import "./globals.scss";
-import { WindowMinimise } from "../wailsjs/runtime";
+import runtime from "../wailsjs/runtime";
 
 const container = document.getElementById("app")
 const root = createRoot(container!)
