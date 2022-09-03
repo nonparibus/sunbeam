@@ -9,12 +9,43 @@ import * as App from "../../wailsjs/go/main/App"
 import * as runtime from "../../wailsjs/runtime/runtime"
 import { IconSource, isDesktopEntryResponse, isFillResponse, isMimeIcon, isNamedIcon as isSystemIcon, isUpdateResponse, SearchResult } from "./response";
 
+window.onblur = () => {
+  runtime.WindowHide()
+}
+
 export function RaycastCMDK() {
   const inputRef = React.useRef<HTMLInputElement | null>(null);
   const listRef = React.useRef(null);
   const [focusedItem, setFocusedItem] = React.useState<SearchResult>();
   const [query, setQuery] = React.useState("")
   const [items, setItems] = React.useState<SearchResult[]>([])
+
+  React.useEffect(() => {
+    runtime.EventsOn("toggle", () => {
+      runtime.WindowCenter()
+      runtime.WindowShow()
+    })    
+    return () => {
+      runtime.EventsOff("toggle")
+    }
+  }, [])
+
+  React.useEffect(() => {
+    function listener(e: KeyboardEvent) {
+      if (e.key !== "Escape") {
+        return;
+      }
+      runtime.WindowHide()
+      setQuery("")
+    }
+
+    document.addEventListener("keydown", listener);
+
+    return () => {
+      document.removeEventListener("keydown", listener);
+    };
+  }, []);
+
 
   React.useEffect(() => {
     function listener(e: KeyboardEvent) {
@@ -87,7 +118,7 @@ export function RaycastCMDK() {
             <Command.Group heading="Results">
               {items.map(item =>
                 <Item key={item.name} item={item} />
-              
+
 
               )}
             </Command.Group>
@@ -109,6 +140,10 @@ export function RaycastCMDK() {
 }
 
 function ItemIcon({ icon }: { icon: IconSource }) {
+  if (icon.Name?.endsWith(".ico")) {
+    // return <img width={24} height={24} src={`/${icon.Name}?type=file`} />
+    return <TerminalIcon />
+  }
   if (isMimeIcon(icon)) {
     return <img width={24} height={24} src={`/${icon.Mime}?type=mime`} />
   }
@@ -120,9 +155,9 @@ function ItemIcon({ icon }: { icon: IconSource }) {
 
 function Item({
   item
- }: {
-    item: SearchResult;
-  }) {
+}: {
+  item: SearchResult;
+}) {
   return (
     <Command.Item value={item.id.toString()} onSelect={() => App.Activate(item.id)}>
       {item.icon ? <ItemIcon icon={item.icon} /> : <TerminalIcon />}

@@ -79,9 +79,15 @@ func (a *App) emitUpdates() {
 // startup is called when the app starts. The context is saved
 // so we can call the runtime methods
 func (a *App) startup(ctx context.Context) {
+	var err error
 	a.ctx = ctx
 
-	err := a.launcher.Start()
+	dbusAPI := NewDbusAPI(a.ctx)
+	go dbusAPI.Listen()
+	if err != nil {
+		runtime.LogFatalf(ctx, "Unable to start dbus api: %s", err)
+	}
+	err = a.launcher.Start()
 	if err != nil {
 		runtime.LogFatalf(ctx, "Unable to start launcher: %s", err)
 	}

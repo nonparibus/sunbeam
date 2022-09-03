@@ -129,6 +129,9 @@ var iconThemes = []string{
 }
 
 func getContentType(icon string) (string, error) {
+	if strings.HasSuffix(icon, ".ico") {
+		return "image/x-icon", nil
+	}
 	if strings.HasSuffix(icon, ".png") {
 		return "image/png", nil
 	}
@@ -142,18 +145,21 @@ func getContentType(icon string) (string, error) {
 func (h *FileLoader) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	iconName := strings.TrimPrefix(req.URL.Path, "/")
 	iconType := req.URL.Query().Get("type")
-	iconPath, ok := h.iconFinder.getIconPath(iconName, iconType, []string{"png", "svg"})
-
-	if !ok {
-		println("not found: %s", iconName)
-		res.WriteHeader(http.StatusBadRequest)
-		res.Write([]byte(fmt.Sprintf("Could not find icon %s", iconName)))
+	var iconPath string
+	if iconType == "file" {
+		iconPath = iconName
+	} else {
+		var ok bool
+		iconPath, ok = h.iconFinder.getIconPath(iconName, iconType, []string{"svg", "png"})
+		if !ok {
+			iconPath, _ = h.iconFinder.getIconPath("unknown", iconType, []string{"svg", "png"})
+		}
 	}
 
 	fileData, err := os.ReadFile(iconPath)
 	if err != nil {
 		res.WriteHeader(http.StatusBadRequest)
-		res.Write([]byte(fmt.Sprintf("Could not load icon %s", iconName)))
+		res.Write([]byte(fmt.Sprintf("Could not load icon %s from filesystem", iconName)))
 	}
 
 	contentType, err := getContentType(iconPath)

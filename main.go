@@ -25,7 +25,6 @@ func main() {
 	launcher := NewPopLauncher(launcherCmd)
 
 	iconFinder := NewIconFinder()
-
 	for _, theme := range []string{"hicolor", "Humanity", "Adwaita"} {
 		err = iconFinder.loadThemeIcons(fmt.Sprintf("/usr/share/icons/%s", theme))
 		if err != nil {
@@ -49,7 +48,7 @@ func main() {
 		// DisableResize: true,
 		AssetsHandler: NewFileLoader(iconFinder),
 
-		AlwaysOnTop: false,
+		AlwaysOnTop: true,
 		Width:       750,
 		Height:      475,
 
