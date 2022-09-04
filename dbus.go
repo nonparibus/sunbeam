@@ -33,7 +33,6 @@ func (api *DbusAPI) Toggle() *dbus.Error {
 }
 
 func (api *DbusAPI) Foo() (string, *dbus.Error) {
-	fmt.Println("Foo")
 	return string("Foo"), nil
 }
 

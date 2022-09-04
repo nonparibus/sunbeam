@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 	"path"
 	"strings"
@@ -28,7 +27,6 @@ func ScanDesktopEntries() (map[string]*desktop.Entry, error) {
 			file, _ := os.Open(entryPath)
 			desktopEntry, err := desktop.New(file)
 			if err != nil {
-				println(fmt.Sprintf("failed to parse %s", entryPath))
 				continue
 			}
 			if desktopEntry.Terminal {

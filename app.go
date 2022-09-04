@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"os"
 	"os/exec"
 	"path"
@@ -21,10 +22,10 @@ func NewApp() *App {
 	return &App{}
 }
 
-func (a *App) RootItems() (Response, error) {
+func (a *App) RootItems() ([]SearchItem, error) {
 	entryMap, err := ScanDesktopEntries()
 	if err != nil {
-		return Response{}, err
+		return nil, err
 	}
 
 	searchItems := make([]SearchItem, 0, len(entryMap))
@@ -54,10 +55,7 @@ func (a *App) RootItems() (Response, error) {
 		})
 	}
 
-	return Response{
-		Type:  Filter,
-		Items: searchItems,
-	}, nil
+	return searchItems, nil
 }
 
 func (a *App) OpenFile(filePath string) error {
@@ -76,17 +74,30 @@ func (a *App) CopyToClipboard(content string) error {
 func (a *App) RunScript(scriptPath string, args []string) (err error) {
 	err = os.Chmod(scriptPath, 0755)
 	if err != nil {
-		return err
+		return
 	}
 	cmd := exec.Command(scriptPath, args...)
 	cmd.Dir = path.Dir(scriptPath)
 	err = cmd.Run()
-	return err
+	return
 
 }
 
-func (a *App) GetScriptItems(scriptPath string) Response {
-	return Response{}
+func (a *App) RunListCommand(scriptPath string) (items []SearchItem, err error) {
+	err = os.Chmod(scriptPath, 0755)
+	if err != nil {
+		return
+	}
+
+	cmd := exec.Command(scriptPath)
+	cmd.Dir = path.Dir(scriptPath)
+	output, err := cmd.Output()
+	if err != nil {
+		return
+	}
+
+	err = json.Unmarshal(output, &items)
+	return
 }
 
 // startup is called when the app starts. The context is saved

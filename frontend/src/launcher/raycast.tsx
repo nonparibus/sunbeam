@@ -29,11 +29,11 @@ export function RaycastCMDK() {
 
   // Add root items
   React.useEffect(() => {
-    App.RootItems().then((response) => {
-      const items = Object.fromEntries(
-        response.items.map((item) => [item.title.trim().toLowerCase(), item])
+    App.RootItems().then((items) => {
+      const itemMap = Object.fromEntries(
+        items.map((item) => [item.title.trim().toLowerCase(), item])
       );
-      setItems(items);
+      setItems(itemMap);
     });
   }, [generator]);
 

@@ -4,12 +4,12 @@ import {main} from '../models';
 
 export function CopyToClipboard(arg1:string):Promise<Error>;
 
-export function GetScriptItems(arg1:string):Promise<main.Response>;
-
 export function OpenFile(arg1:string):Promise<Error>;
 
 export function OpenInBrowser(arg1:string):Promise<Error>;
 
-export function RootItems():Promise<main.Response>;
+export function RootItems():Promise<Array<main.SearchItem>>;
+
+export function RunListCommand(arg1:string):Promise<Array<main.SearchItem>>;
 
 export function RunScript(arg1:string,arg2:Array<string>):Promise<Error>;

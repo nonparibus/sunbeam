@@ -2,7 +2,6 @@
 
 DIRNAME=$( dirname "$(readlink -f -- "$0")" )
 
-export XDG_DATA_HOME="$DIRNAME/user/share"
-export PATH="$DIRNAME/usr/bin:$PATH"
+export XDG_DATA_DIRS=XDG_DATA_DIRS:"$DIRNAME/usr/share"
 
 exec "$DIRNAME/usr/bin/raycast"

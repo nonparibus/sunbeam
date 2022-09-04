@@ -31,7 +31,6 @@ func main() {
 	for _, theme := range themes {
 		for _, dir := range IconsDirectories() {
 			themedir := path.Join(dir, theme)
-			println(themedir)
 			if _, err := os.Stat(themedir); os.IsNotExist(err) {
 				continue
 			}

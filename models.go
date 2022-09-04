@@ -29,28 +29,14 @@ type Shortcut struct {
 	Key   string `json:"key"`
 }
 
-type Response struct {
-	Type    string       `json:"type"`
-	Items   []SearchItem `json:"items"`
-	Message string       `json:"message"`
-}
-
-type ResponseType string
-
-const (
-	Filter = "filter"
-	Search = "search"
-)
-
 type CommandType string
 
 const (
 	OpenFile        = "open-file"
 	OpenUrl         = "open-url"
 	CopyToClipboard = "copy-to-clipboard"
-	Fill            = "fill"
-	Script          = "run-script"
-	List            = "push-list"
+	RunScript       = "run-script"
+	PushList        = "push-list"
 )
 
 func NewOpenCommand(filepath string) Command {
@@ -71,21 +57,15 @@ func NewCopyToClipboardCommand(content string) Command {
 	}}
 }
 
-func NewFillCommand(value string) Command {
-	return Command{Type: Fill, Params: map[string]interface{}{
-		"value": value,
-	}}
-}
-
 func RunScriptCommand(scriptPath string, args ...string) Command {
-	return Command{Type: Script, Params: map[string]interface{}{
+	return Command{Type: RunScript, Params: map[string]interface{}{
 		"scriptpath": scriptPath,
 		"args":       args,
 	}}
 }
 
-func PushListCommand(scriptPath string, args []string) Command {
-	return Command{Type: Script, Params: map[string]interface{}{
-		"scriptpath": scriptPath,
+func PushListCommand(mode string, scriptPath string, args []string) Command {
+	return Command{Type: RunScript, Params: map[string]interface{}{
+		"scriptpath": scriptPath, "mode": mode,
 	}}
 }

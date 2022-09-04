@@ -6,10 +6,6 @@ export function CopyToClipboard(arg1) {
   return window['go']['main']['App']['CopyToClipboard'](arg1);
 }
 
-export function GetScriptItems(arg1) {
-  return window['go']['main']['App']['GetScriptItems'](arg1);
-}
-
 export function OpenFile(arg1) {
   return window['go']['main']['App']['OpenFile'](arg1);
 }
@@ -20,6 +16,10 @@ export function OpenInBrowser(arg1) {
 
 export function RootItems() {
   return window['go']['main']['App']['RootItems']();
+}
+
+export function RunListCommand(arg1) {
+  return window['go']['main']['App']['RunListCommand'](arg1);
 }
 
 export function RunScript(arg1, arg2) {
