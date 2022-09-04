@@ -2,6 +2,7 @@
 
 DIRNAME=$( dirname "$(readlink -f -- "$0")" )
 
-XDG_DATA_HOME=$DIRNAME/assets wails dev
+export DESKTOP_SESSION=xfce
+export XDG_DATA_DIRS=$DIRNAME/assets:$XDG_DATA_DIRS
 
-
+exec wails dev

@@ -4,6 +4,8 @@ import {main} from '../models';
 
 export function CopyToClipboard(arg1:string):Promise<Error>;
 
+export function GetScriptItems(arg1:string):Promise<main.Response>;
+
 export function OpenFile(arg1:string):Promise<Error>;
 
 export function OpenInBrowser(arg1:string):Promise<Error>;

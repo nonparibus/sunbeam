@@ -6,6 +6,7 @@ import (
 	"os/exec"
 	"path"
 
+	"github.com/adrg/xdg"
 	"github.com/atotto/clipboard"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
@@ -28,7 +29,6 @@ func (a *App) RootItems() (Response, error) {
 
 	searchItems := make([]SearchItem, 0, len(entryMap))
 	for desktopEntryPath, desktopEntry := range entryMap {
-		runtime.LogDebugf(a.ctx, "%s", desktopEntry)
 		searchItems = append(searchItems, SearchItem{
 			Key:            desktopEntryPath,
 			Title:          desktopEntry.Name,
@@ -36,19 +36,20 @@ func (a *App) RootItems() (Response, error) {
 			Icon:           desktopEntry.Icon,
 			Actions: []Action{
 				{Title: "Open Application", Command: NewOpenCommand(desktopEntryPath)},
-				{Title: "Copy Name", Command: NewCopyToClipboardCommand(desktopEntry.Name)},
+				{Title: "Copy Path", Command: NewCopyToClipboardCommand(desktopEntryPath)},
 			},
 		})
 	}
 
-	scriptCommands, err := ScanScriptDir()
+	scriptDir := path.Join(xdg.DataHome, "raycast", "scripts")
+	scriptCommands, err := ScanScriptDir(scriptDir)
 	for _, scriptCommand := range scriptCommands {
 		searchItems = append(searchItems, SearchItem{
 			Title:          scriptCommand.Title,
 			Subtitle:       scriptCommand.PackageName,
 			AccessoryTitle: "Script Command",
 			Actions: []Action{
-				{Title: "Run Script", Command: NewRunCommand(scriptCommand.Path)},
+				{Title: "Run Script", Command: RunScriptCommand(scriptCommand.Path)},
 			},
 		})
 	}
@@ -84,7 +85,7 @@ func (a *App) RunScript(scriptPath string, args []string) (err error) {
 
 }
 
-func PushScript(scriptPath string) Response {
+func (a *App) GetScriptItems(scriptPath string) Response {
 	return Response{}
 }
 

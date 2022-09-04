@@ -5,41 +5,40 @@ import { TerminalIcon, RaycastLightIcon } from "./icons";
 import * as App from "../../wailsjs/go/main/App";
 import { main } from "../../wailsjs/go/models";
 import * as runtime from "../../wailsjs/runtime/runtime";
-import { isCopyToClipboardCommand, isOpenCommand, isRunCommand } from "./commands";
+import {
+  isCopyToClipboardCommand,
+  isOpenCommand,
+  IsPushListCommand,
+  isRunScriptCommand,
+} from "./commands";
 import * as Popover from "@radix-ui/react-popover";
 
-// window.onblur = () => {
-//   runtime.WindowHide();
-// };
+window.onblur = () => {
+  runtime.WindowHide();
+};
 
 export function RaycastCMDK() {
   const inputRef = React.useRef<HTMLInputElement | null>(null);
   const listRef = React.useRef(null);
-  const [focusedValue, setFocusedValue] = React.useState("");
   const [query, setQuery] = React.useState("");
+  const [focusedValue, setFocusedValue] = React.useState("");
   const [items, setItems] = React.useState<Record<string, main.SearchItem>>();
+  const [generator, setGenerator] = React.useState<string>();
 
-  const focusedItem = items ? items[focusedValue] : undefined;
+  const focusedItem = items && items[focusedValue];
 
-  function handleResponse(response: main.Response) {
-    switch (response.type) {
-      case "filter": {
-        const items = Object.fromEntries(
-          response.items.map((item) => [item.title.trim().toLowerCase(), item])
-        );
-        setItems(items);
-        break;
-      }
-      default: {
-        runtime.LogError(
-          `No handler for response: ${JSON.stringify(response)}`
-        );
-      }
-    }
-  }
+  // Add root items
+  React.useEffect(() => {
+    App.RootItems().then((response) => {
+      const items = Object.fromEntries(
+        response.items.map((item) => [item.title.trim().toLowerCase(), item])
+      );
+      setItems(items);
+    });
+  }, [generator]);
 
   function handleCommand(command: main.Command) {
-    runtime.LogDebug(`Handling Command: ${JSON.stringify(command)}`)
+    runtime.LogDebug(`Handling Command: ${JSON.stringify(command)}`);
     if (isCopyToClipboardCommand(command)) {
       App.CopyToClipboard(command.params.content);
       return;
@@ -48,16 +47,16 @@ export function RaycastCMDK() {
       App.OpenFile(command.params.filepath);
       return;
     }
-    if (isRunCommand(command)) {
-      App.RunScript(command.params.scriptpath, [])
+    if (isRunScriptCommand(command)) {
+      App.RunScript(command.params.scriptpath, []);
       return;
+    }
+    if (IsPushListCommand(command)) {
+      setGenerator(command.params.scriptpath)
     }
   }
 
-  React.useEffect(() => {
-    App.RootItems().then(handleResponse);
-  }, []);
-
+  // Listen for commands
   React.useEffect(() => {
     runtime.EventsOn("toggle", () => {
       runtime.WindowCenter();
@@ -65,22 +64,6 @@ export function RaycastCMDK() {
     });
     return () => {
       runtime.EventsOff("toggle");
-    };
-  }, []);
-
-  React.useEffect(() => {
-    function listener(e: KeyboardEvent) {
-      if (e.key !== "Escape") {
-        return;
-      }
-      runtime.WindowHide();
-      setQuery("");
-    }
-
-    document.addEventListener("keydown", listener);
-
-    return () => {
-      document.removeEventListener("keydown", listener);
     };
   }, []);
 
@@ -93,6 +76,11 @@ export function RaycastCMDK() {
       <Command
         shouldFilter={true}
         value={focusedValue}
+        onKeyDown={(e) => {
+          if (e.key === "Escape" || (e.key === "Backspace" && !query)) {
+            e.preventDefault();
+          }
+        }}
         onValueChange={setFocusedValue}
       >
         <div cmdk-raycast-top-shine="" />
@@ -105,9 +93,7 @@ export function RaycastCMDK() {
         />
         <hr cmdk-raycast-loader="" />
         <Command.List ref={listRef}>
-          <Command.Empty>
-            {query ? "No Result Found." : "Type Something !"}
-          </Command.Empty>
+          <Command.Empty>No Result Found.</Command.Empty>
           <Command.Group heading="Results">
             {Object.entries(items || {}).map(([key, item]) => (
               <Item
@@ -124,15 +110,17 @@ export function RaycastCMDK() {
 
         <div cmdk-raycast-footer="">
           <div cmd-raycast-submenu="">
-            <RaycastMenu
-              listRef={listRef}
-              inputRef={inputRef}
-            />
+            <RaycastMenu listRef={listRef} inputRef={inputRef} />
           </div>
 
           {focusedItem ? (
             <>
-              <button cmdk-raycast-subcommand-trigger=""onClick={() => {handleCommand(focusedItem.actions[0]?.command)}}>
+              <button
+                cmdk-raycast-subcommand-trigger=""
+                onClick={() => {
+                  handleCommand(focusedItem.actions[0]?.command);
+                }}
+              >
                 {focusedItem.actions[0]?.title || ""}
                 <kbd>↵</kbd>
               </button>
@@ -202,7 +190,7 @@ function RaycastMenu({
         onClick={() => setOpen(true)}
         aria-expanded={open}
       >
-      <RaycastLightIcon />
+        <RaycastLightIcon />
       </Popover.Trigger>
       <Popover.Content
         side="top"
@@ -220,7 +208,13 @@ function RaycastMenu({
             <Command.Group heading="Raycast">
               <Command.Item>Manual</Command.Item>
               <Command.Item>Switch to Dark Mode</Command.Item>
-              <Command.Item onSelect={() => {runtime.Quit()}}>Quit Raycast</Command.Item>
+              <Command.Item
+                onSelect={() => {
+                  runtime.Quit();
+                }}
+              >
+                Quit Raycast
+              </Command.Item>
             </Command.Group>
           </Command.List>
           <Command.Input placeholder="Search for actions..." />
@@ -299,7 +293,9 @@ function SubCommand({
                 <Command.Item onSelect={() => onAction(action)}>
                   {action.title}
                   <div cmdk-raycast-submenu-shortcuts="">
-                    {action.shortcut.key ? <Shortcut shortcut={action.shortcut} /> : null}
+                    {action.shortcut.key ? (
+                      <Shortcut shortcut={action.shortcut} />
+                    ) : null}
                   </div>
                 </Command.Item>
               ))}

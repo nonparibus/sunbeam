@@ -340,7 +340,7 @@
     [cmdk] {
       width: 640px;
       transform-origin: center center;
-      animation: dialogIn var(--transition-fast) forwards;
+      animation: dialogIn var(--transition-fast) forwards
     }
 
     &[data-state="closed"] [cmdk] {
@@ -353,7 +353,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    height: 64px;
+    height: 343px;
     white-space: pre-wrap;
     color: var(--gray11);
   }

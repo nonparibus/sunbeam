@@ -45,22 +45,22 @@ const (
 type CommandType string
 
 const (
-	Open            = "open"
-	OpenInBrowser   = "open-in-browser"
+	OpenFile        = "open-file"
+	OpenUrl         = "open-url"
 	CopyToClipboard = "copy-to-clipboard"
 	Fill            = "fill"
-	Run             = "run"
-	Push            = "push"
+	Script          = "run-script"
+	List            = "push-list"
 )
 
 func NewOpenCommand(filepath string) Command {
-	return Command{Type: Open, Params: map[string]interface{}{
+	return Command{Type: OpenFile, Params: map[string]interface{}{
 		"filepath": filepath,
 	}}
 }
 
 func NewOpenInBrowserCommand(url string) Command {
-	return Command{Type: OpenInBrowser, Params: map[string]interface{}{
+	return Command{Type: OpenUrl, Params: map[string]interface{}{
 		"url": url,
 	}}
 }
@@ -77,15 +77,15 @@ func NewFillCommand(value string) Command {
 	}}
 }
 
-func NewRunCommand(scriptPath string, args ...string) Command {
-	return Command{Type: Run, Params: map[string]interface{}{
+func RunScriptCommand(scriptPath string, args ...string) Command {
+	return Command{Type: Script, Params: map[string]interface{}{
 		"scriptpath": scriptPath,
 		"args":       args,
 	}}
 }
 
-func NewPushCommand(scriptPath string, args []string) Command {
-	return Command{Type: Run, Params: map[string]interface{}{
+func PushListCommand(scriptPath string, args []string) Command {
+	return Command{Type: Script, Params: map[string]interface{}{
 		"scriptpath": scriptPath,
 	}}
 }

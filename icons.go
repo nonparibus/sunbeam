@@ -8,17 +8,22 @@ import (
 	"path"
 	"strings"
 
+	"github.com/adrg/xdg"
 	"github.com/go-ini/ini"
 )
 
 func currentTheme() (string, error) {
 	cmd := exec.Command("gsettings", "get", "org.gnome.desktop.interface", "gtk-theme")
-	theme, err := cmd.Output()
+	out, err := cmd.Output()
 	if err != nil {
 		return "", fmt.Errorf("An error occured while fetching the theme: %s", err)
 	}
 
-	return string(theme), nil
+	theme := string(out)
+	theme = strings.TrimSuffix(theme, "\n")
+	theme = strings.Replace(theme, "'", "", -1)
+
+	return theme, nil
 }
 
 type IconFinder struct {
@@ -29,6 +34,18 @@ func NewIconFinder() *IconFinder {
 	return &IconFinder{
 		iconMap: make(map[string]string),
 	}
+}
+
+func IconsDirectories() []string {
+	dirs := make([]string, 0)
+	if homeDir, err := os.UserHomeDir(); err == nil {
+		dirs = append(dirs, path.Join(homeDir, ".icons"))
+	}
+	for _, dataDir := range xdg.DataDirs {
+		dirs = append(dirs, path.Join(dataDir, "icons"))
+	}
+	dirs = append(dirs, "/usr/share/pixmaps")
+	return dirs
 }
 
 func (i *IconFinder) loadThemeIcons(themeDirectory string) error {
@@ -50,18 +67,6 @@ func (i *IconFinder) loadThemeIcons(themeDirectory string) error {
 		if directory == "" {
 			continue
 		}
-		// directorySection, err := config.GetSection(directory)
-		// if err != nil {
-		// 	return NewConfigError(err)
-		// }
-
-		// ContextKey, err := directorySection.GetKey("Context")
-		// if err != nil {
-		// 	return NewConfigError(err)
-		// }
-		// if ContextKey.Value() != "Applications" {
-		// 	continue
-		// }
 
 		// SizeKey, err := directorySection.GetKey("Size")
 		// if err != nil {
@@ -121,11 +126,6 @@ func NewFileLoader(iconFinder *IconFinder) *FileLoader {
 	return &FileLoader{
 		iconFinder: iconFinder,
 	}
-}
-
-var iconThemes = []string{
-	"Adwaita",
-	"hicolor",
 }
 
 func getContentType(icon string) (string, error) {

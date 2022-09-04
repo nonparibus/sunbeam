@@ -36,7 +36,7 @@ func (s *ScriptCommand) toSearchItem() SearchItem {
 		Title:          s.Title,
 		AccessoryTitle: "Script Command",
 		Actions: []Action{
-			{Title: "Run Script", Command: NewRunCommand(s.Path)},
+			{Title: "Run Script", Command: RunScriptCommand(s.Path)},
 		},
 	}
 }
@@ -67,13 +67,12 @@ func ParseScript(script_path string) (ScriptCommand, error) {
 	}}, nil
 }
 
-func ScanScriptDir() ([]ScriptCommand, error) {
-	scriptFolder := "/workspace/raycast-linux/scripts"
-	dirEntries, _ := os.ReadDir(scriptFolder)
+func ScanScriptDir(scriptDir string) ([]ScriptCommand, error) {
+	dirEntries, _ := os.ReadDir(scriptDir)
 
 	scriptCommands := make([]ScriptCommand, 0, len(dirEntries))
 	for _, dirEntry := range dirEntries {
-		scriptPath := path.Join(scriptFolder, dirEntry.Name())
+		scriptPath := path.Join(scriptDir, dirEntry.Name())
 		scriptCommand, err := ParseScript(scriptPath)
 		if err != nil {
 			return nil, err

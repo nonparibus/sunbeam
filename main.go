@@ -4,6 +4,8 @@ import (
 	"embed"
 	"fmt"
 	"log"
+	"os"
+	"path"
 
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/options"
@@ -15,15 +17,30 @@ var assets embed.FS
 func main() {
 	var err error
 
-	iconFinder := NewIconFinder()
-	for _, theme := range []string{"hicolor", "Humanity", "Adwaita"} {
-		err = iconFinder.loadThemeIcons(fmt.Sprintf("/usr/share/icons/%s", theme))
-		if err != nil {
-			log.Fatalf("Theme not found: %s", theme)
-		}
-	}
+	currentTheme, err := currentTheme()
 	if err != nil {
-		log.Fatalf("Unable to load theme: %s", err)
+		currentTheme = "Adwaita"
+	}
+
+	iconFinder := NewIconFinder()
+	themes := []string{
+		"hicolor",
+		"Humanity",
+		currentTheme,
+	}
+	for _, theme := range themes {
+		for _, dir := range IconsDirectories() {
+			themedir := path.Join(dir, theme)
+			println(themedir)
+			if _, err := os.Stat(themedir); os.IsNotExist(err) {
+				continue
+			}
+			err = iconFinder.loadThemeIcons(fmt.Sprintf("/usr/share/icons/%s", theme))
+			if err != nil {
+				log.Fatalf("Theme not found: %s", theme)
+			}
+
+		}
 	}
 
 	// Create an instance of the app structure
