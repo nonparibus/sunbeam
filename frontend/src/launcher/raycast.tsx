@@ -5,7 +5,7 @@ import { TerminalIcon, RaycastLightIcon } from "./icons";
 import * as App from "../../wailsjs/go/main/App";
 import { main } from "../../wailsjs/go/models";
 import * as runtime from "../../wailsjs/runtime/runtime";
-import { isCopyToClipboardCommand, isOpenCommand } from "./commands";
+import { isCopyToClipboardCommand, isOpenCommand, isRunCommand } from "./commands";
 import * as Popover from "@radix-ui/react-popover";
 
 // window.onblur = () => {
@@ -39,12 +39,18 @@ export function RaycastCMDK() {
   }
 
   function handleCommand(command: main.Command) {
+    runtime.LogDebug(`Handling Command: ${JSON.stringify(command)}`)
     if (isCopyToClipboardCommand(command)) {
       App.CopyToClipboard(command.params.content);
       return;
     }
     if (isOpenCommand(command)) {
       App.OpenFile(command.params.filepath);
+      return;
+    }
+    if (isRunCommand(command)) {
+      App.RunScript(command.params.scriptpath, [])
+      return;
     }
   }
 

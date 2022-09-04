@@ -2,10 +2,11 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"os/exec"
+	"path"
 	"regexp"
 )
 
@@ -40,19 +41,47 @@ func (s *ScriptCommand) toSearchItem() SearchItem {
 	}
 }
 
-func extractValue(buf []byte, prefix string) []byte {
-	r := regexp.MustCompile(fmt.Sprintf("%s (\\w+)$", prefix))
-	return r.Find(buf)
+func extractRaycastMetadatas(content string) map[string]string {
+	r := regexp.MustCompile("@raycast.([A-Za-z0-9]+)\\s([\\S ]+)")
+	groups := r.FindAllStringSubmatch(content, -1)
+
+	metadataMap := make(map[string]string)
+	for _, group := range groups {
+		metadataMap[group[1]] = group[2]
+	}
+
+	return metadataMap
 }
 
-func ParseScript(script_path string) ScriptCommand {
-	content, _ := os.ReadFile(script_path)
+func ParseScript(script_path string) (ScriptCommand, error) {
+	content, err := ioutil.ReadFile(script_path)
+	if err != nil {
+		return ScriptCommand{}, err
+	}
+
+	metadatas := extractRaycastMetadatas(string(content))
 	return ScriptCommand{Path: script_path, ScriptMetadatas: ScriptMetadatas{
-		Title:       string(extractValue(content, "@raycast.title")),
-		Description: string(extractValue(content, "@raycast.description")),
-		PackageName: string(extractValue(content, "@raycast.packageName")),
-		Mode:        string(extractValue(content, "@raycast.mode")),
-	}}
+		Title:       metadatas["title"],
+		PackageName: metadatas["packageName"],
+		Mode:        metadatas["mode"],
+	}}, nil
+}
+
+func ScanScriptDir() ([]ScriptCommand, error) {
+	scriptFolder := "/workspace/raycast-linux/scripts"
+	dirEntries, _ := os.ReadDir(scriptFolder)
+
+	scriptCommands := make([]ScriptCommand, 0, len(dirEntries))
+	for _, dirEntry := range dirEntries {
+		scriptPath := path.Join(scriptFolder, dirEntry.Name())
+		scriptCommand, err := ParseScript(scriptPath)
+		if err != nil {
+			return nil, err
+		}
+		scriptCommands = append(scriptCommands, scriptCommand)
+	}
+
+	return scriptCommands, nil
 }
 
 type ScriptRunner struct {
@@ -91,4 +120,8 @@ func (p *ScriptRunner) Start() error {
 
 func (p *ScriptRunner) Close() {
 	p.cmd.Process.Kill()
+}
+
+func IsExecOwner(mode os.FileMode) bool {
+	return mode&0100 != 0
 }

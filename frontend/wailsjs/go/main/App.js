@@ -17,3 +17,7 @@ export function OpenInBrowser(arg1) {
 export function RootItems() {
   return window['go']['main']['App']['RootItems']();
 }
+
+export function RunScript(arg1, arg2) {
+  return window['go']['main']['App']['RunScript'](arg1, arg2);
+}

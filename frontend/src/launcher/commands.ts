@@ -17,3 +17,12 @@ export interface CopyToClipboardCommand {
 export function isCopyToClipboardCommand(cmd: main.Command): cmd is CopyToClipboardCommand {
     return cmd.type  == "copy-to-clipbard"
 }
+
+export interface RunCommand {
+    type: "copy-to-clipboard",
+    params: {scriptpath: string, cwd: string}
+}
+
+export function isRunCommand(cmd: main.Command): cmd is RunCommand {
+    return cmd.type === "run"
+}
