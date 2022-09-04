@@ -4,7 +4,6 @@ import (
 	"embed"
 	"fmt"
 	"log"
-	"os/exec"
 
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/options"
@@ -16,9 +15,6 @@ var assets embed.FS
 func main() {
 	var err error
 
-	launcherCmd := exec.Command("pop-launcher")
-	launcher := NewPopLauncher(launcherCmd)
-
 	iconFinder := NewIconFinder()
 	for _, theme := range []string{"hicolor", "Humanity", "Adwaita"} {
 		err = iconFinder.loadThemeIcons(fmt.Sprintf("/usr/share/icons/%s", theme))
@@ -26,13 +22,12 @@ func main() {
 			log.Fatalf("Theme not found: %s", theme)
 		}
 	}
-
 	if err != nil {
 		log.Fatalf("Unable to load theme: %s", err)
 	}
 
 	// Create an instance of the app structure
-	app := NewApp(launcher)
+	app := NewApp()
 
 	// Create application with options
 	err = wails.Run(&options.App{
