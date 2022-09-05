@@ -7,14 +7,14 @@ import (
 	"os/exec"
 	"path"
 
-	"github.com/adrg/xdg"
 	"github.com/atotto/clipboard"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
 // App struct
 type App struct {
-	ctx context.Context
+	ctx       context.Context
+	rootItems []SearchItem
 }
 
 // NewApp creates a new App application struct
@@ -22,16 +22,15 @@ func NewApp() *App {
 	return &App{}
 }
 
-func (a *App) RootItems() ([]SearchItem, error) {
+func (a *App) loadRootItems() (err error) {
 	entryMap, err := ScanDesktopEntries()
 	if err != nil {
-		return nil, err
+		return
 	}
 
 	searchItems := make([]SearchItem, 0, len(entryMap))
 	for desktopEntryPath, desktopEntry := range entryMap {
 		searchItems = append(searchItems, SearchItem{
-			Key:            desktopEntryPath,
 			Title:          desktopEntry.Name,
 			AccessoryTitle: "Application",
 			Icon:           desktopEntry.Icon,
@@ -42,20 +41,21 @@ func (a *App) RootItems() ([]SearchItem, error) {
 		})
 	}
 
-	scriptDir := path.Join(xdg.DataHome, "raycast", "scripts")
-	scriptCommands, err := ScanScriptDir(scriptDir)
-	for _, scriptCommand := range scriptCommands {
-		searchItems = append(searchItems, SearchItem{
-			Title:          scriptCommand.Title,
-			Subtitle:       scriptCommand.PackageName,
-			AccessoryTitle: "Script Command",
-			Actions: []Action{
-				{Title: "Run Script", Command: RunScriptCommand(scriptCommand.Path)},
-			},
-		})
+	scriptCommands, err := ScanScriptDirs()
+	if err != nil {
+		return
 	}
 
-	return searchItems, nil
+	for _, scriptCommand := range scriptCommands {
+		searchItems = append(searchItems, scriptCommand.toSearchItem())
+	}
+
+	a.rootItems = searchItems
+	return
+}
+
+func (a *App) RootItems() []SearchItem {
+	return a.rootItems
 }
 
 func (a *App) OpenFile(filePath string) error {
@@ -80,7 +80,6 @@ func (a *App) RunScript(scriptPath string, args []string) (err error) {
 	cmd.Dir = path.Dir(scriptPath)
 	err = cmd.Run()
 	return
-
 }
 
 func (a *App) RunListCommand(scriptPath string) (items []SearchItem, err error) {

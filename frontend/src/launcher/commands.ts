@@ -1,37 +1,37 @@
 import {main} from "../../wailsjs/go/models"
 
-export interface OpenCommand {
+export interface OpenAction extends main.Action {
     type: "open",
     params: {filepath: string}
 }
 
-export function isOpenCommand(cmd: main.Command): cmd is OpenCommand {
+export function isOpenAction(cmd: main.Action): cmd is OpenAction {
     return cmd.type  == "open-file"
 }
 
-export interface CopyToClipboardCommand {
+export interface CopyToClipboardAction extends main.Action {
     type: "copy-to-clipboard",
     params: {content: string}
 }
 
-export function isCopyToClipboardCommand(cmd: main.Command): cmd is CopyToClipboardCommand {
+export function isCopyToClipboardAction(cmd: main.Action): cmd is CopyToClipboardAction {
     return cmd.type  == "copy-to-clipbard"
 }
 
-export interface RunScriptCommand {
+export interface RunScriptAction extends main.Action {
     type: "run-script",
     params: {scriptpath: string, cwd: string}
 }
 
-export function isRunScriptCommand(cmd: main.Command): cmd is RunScriptCommand {
+export function isRunScriptAction(cmd: main.Action): cmd is RunScriptAction {
     return cmd.type === "script"
 }
 
-export interface PushListCommand {
+export interface PushListAction extends main.Action {
     type: "push-list",
     params: {scriptpath: string, cwd: string}
 }
 
-export function IsPushListCommand(cmd: main.Command): cmd is PushListCommand {
+export function IsPushListAction(cmd: main.Action): cmd is PushListAction {
     return cmd.type === "list"
 }

@@ -17,7 +17,10 @@
       "mode": "exec",
       "program": "${workspaceFolder}/build/bin/raycast",
       "preLaunchTask": "build debug",
-      "cwd": "${workspaceFolder}"
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "XDG_DATA_DIRS": "${workspaceFolder}/script_commands"
+      }
     },
     {
       "name": "Wails: Dev raycast",

@@ -6,10 +6,10 @@ import * as App from "../../wailsjs/go/main/App";
 import { main } from "../../wailsjs/go/models";
 import * as runtime from "../../wailsjs/runtime/runtime";
 import {
-  isCopyToClipboardCommand,
-  isOpenCommand,
-  IsPushListCommand,
-  isRunScriptCommand,
+  isCopyToClipboardAction,
+  isOpenAction,
+  IsPushListAction,
+  isRunScriptAction,
 } from "./commands";
 import * as Popover from "@radix-ui/react-popover";
 
@@ -44,22 +44,22 @@ export function RaycastCMDK() {
     });
   }, [generator]);
 
-  function handleCommand(command: main.Command) {
-    runtime.LogDebug(`Handling Command: ${JSON.stringify(command)}`);
-    if (isCopyToClipboardCommand(command)) {
-      App.CopyToClipboard(command.params.content);
+  function handleAction(action: main.Action) {
+    runtime.LogDebug(`Handling Action: ${JSON.stringify(action)}`);
+    if (isCopyToClipboardAction(action)) {
+      App.CopyToClipboard(action.params.content);
       return;
     }
-    if (isOpenCommand(command)) {
-      App.OpenFile(command.params.filepath);
+    if (isOpenAction(action)) {
+      App.OpenFile(action.params.filepath);
       return;
     }
-    if (isRunScriptCommand(command)) {
-      App.RunScript(command.params.scriptpath, []);
+    if (isRunScriptAction(action)) {
+      App.RunScript(action.params.scriptpath, []);
       return;
     }
-    if (IsPushListCommand(command)) {
-      setGenerator(command.params.scriptpath);
+    if (IsPushListAction(action)) {
+      setGenerator(action.params.scriptpath);
     }
   }
 
@@ -108,7 +108,7 @@ export function RaycastCMDK() {
                 key={key}
                 value={key}
                 onSelect={() => {
-                  handleCommand(item.actions[0].command);
+                  handleAction(item.actions[0]);
                 }}
               />
             ))}
@@ -125,7 +125,7 @@ export function RaycastCMDK() {
               <button
                 cmdk-raycast-subcommand-trigger=""
                 onClick={() => {
-                  handleCommand(focusedItem.actions[0]?.command);
+                  handleAction(focusedItem.actions[0]);
                 }}
               >
                 {focusedItem.actions[0]?.title || ""}
@@ -136,7 +136,7 @@ export function RaycastCMDK() {
                 listRef={listRef}
                 focusedItem={focusedItem}
                 inputRef={inputRef}
-                onAction={(action) => handleCommand(action.command)}
+                onAction={(action) => handleAction(action)}
               />
             </>
           ) : null}

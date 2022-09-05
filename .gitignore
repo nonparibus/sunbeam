@@ -1,5 +1,4 @@
 .DS_Store
 
-AppDir/usr
-AppDir/home
+AppDir/usr/bin
 *.AppImage

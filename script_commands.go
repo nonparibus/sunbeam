@@ -2,13 +2,16 @@ package main
 
 import (
 	"encoding/json"
-	"io"
 	"io/ioutil"
 	"os"
-	"os/exec"
 	"path"
 	"regexp"
+
+	"github.com/adrg/xdg"
+	"github.com/go-playground/validator/v10"
 )
+
+var validate = validator.New()
 
 type ScriptCommand struct {
 	Path string
@@ -16,10 +19,9 @@ type ScriptCommand struct {
 }
 
 type ScriptMetadatas struct {
-	Prefix               string
-	SchemaVersion        string
-	Title                string
-	Mode                 string
+	SchemaVersion        int    `validate:"required,eq=1"`
+	Title                string `validate:"required"`
+	Mode                 string `validate:"required,oneof=silent filter search"`
 	PackageName          string
 	Icon                 string
 	IconDark             string
@@ -31,12 +33,25 @@ type ScriptMetadatas struct {
 }
 
 func (s *ScriptCommand) toSearchItem() SearchItem {
+	var primaryAction Action
+	if s.Mode == "filter" || s.Mode == "search" {
+		primaryAction = Action{
+			Title:   "Open Command",
+			Command: NewPushListCommand(s.Path, []string{}, string(s.Mode)),
+		}
+	} else {
+		primaryAction = Action{
+			Title:   "Run Script",
+			Command: NewRunScriptCommand(s.Path, []string{}, string(s.Mode)),
+		}
+
+	}
 	return SearchItem{
 		Icon:           s.Icon,
 		Title:          s.Title,
 		AccessoryTitle: "Script Command",
 		Actions: []Action{
-			{Title: "Run Script", Command: RunScriptCommand(s.Path)},
+			primaryAction,
 		},
 	}
 }
@@ -60,11 +75,37 @@ func ParseScript(script_path string) (ScriptCommand, error) {
 	}
 
 	metadatas := extractRaycastMetadatas(string(content))
-	return ScriptCommand{Path: script_path, ScriptMetadatas: ScriptMetadatas{
-		Title:       metadatas["title"],
-		PackageName: metadatas["packageName"],
-		Mode:        metadatas["mode"],
-	}}, nil
+
+	var schemaVersion int
+	err = json.Unmarshal([]byte(metadatas["schemaVersion"]), &schemaVersion)
+	if err != nil {
+		return ScriptCommand{}, err
+	}
+
+	var needsConfirmation bool
+	json.Unmarshal([]byte(metadatas["schemaVersion"]), &needsConfirmation)
+
+	scripCommand := ScriptCommand{Path: script_path, ScriptMetadatas: ScriptMetadatas{
+		SchemaVersion:        schemaVersion,
+		Title:                metadatas["title"],
+		Mode:                 metadatas["mode"],
+		PackageName:          metadatas["packageName"],
+		Icon:                 metadatas["icon"],
+		IconDark:             metadatas["iconDark"],
+		CurrentDirectoryPath: metadatas["currentDirectoryPath"],
+		NeedsConfirmation:    needsConfirmation,
+		Author:               metadatas["author"],
+		AutorUrl:             metadatas["autorUrl"],
+		Description:          metadatas["description"],
+	}}
+
+	err = validate.Struct(scripCommand)
+	if err != nil {
+		println(err)
+		return ScriptCommand{}, err
+	}
+
+	return scripCommand, nil
 }
 
 func ScanScriptDir(scriptDir string) ([]ScriptCommand, error) {
@@ -83,42 +124,20 @@ func ScanScriptDir(scriptDir string) ([]ScriptCommand, error) {
 	return scriptCommands, nil
 }
 
-type ScriptRunner struct {
-	cmd *exec.Cmd
-	io.ReadCloser
-	io.WriteCloser
-	*json.Decoder
-}
-
-func NewScriptRunner(cmd *exec.Cmd) (launcher *ScriptRunner) {
-	return &ScriptRunner{
-		cmd: cmd,
-	}
-}
-
-func (p *ScriptRunner) Start() error {
-	stdin, err := p.cmd.StdinPipe()
-	if err != nil {
-		return nil
-	}
-	p.WriteCloser = stdin
-
-	stdout, err := p.cmd.StdoutPipe()
-	if err != nil {
-		return nil
-	}
-	p.ReadCloser = stdout
-	p.Decoder = json.NewDecoder(stdout)
-
-	if err = p.cmd.Start(); err != nil {
-		return err
+func ScanScriptDirs() (scriptCommands []ScriptCommand, err error) {
+	for _, dir := range xdg.DataDirs {
+		scriptDir := path.Join(dir, "raycast")
+		if _, err := os.Stat(scriptDir); os.IsNotExist(err) {
+			continue
+		}
+		dirCommands, err := ScanScriptDir(scriptDir)
+		if err != nil {
+			return nil, err
+		}
+		scriptCommands = append(scriptCommands, dirCommands...)
 	}
 
-	return nil
-}
-
-func (p *ScriptRunner) Close() {
-	p.cmd.Process.Kill()
+	return
 }
 
 func IsExecOwner(mode os.FileMode) bool {

@@ -43,6 +43,7 @@ func main() {
 
 	// Create an instance of the app structure
 	app := NewApp()
+	app.loadRootItems()
 
 	// Create application with options
 	err = wails.Run(&options.App{
@@ -53,9 +54,9 @@ func main() {
 		// DisableResize: true,
 		AssetsHandler: NewFileLoader(iconFinder),
 
-		AlwaysOnTop: true,
-		Width:       750,
-		Height:      475,
+		// AlwaysOnTop: true,
+		Width:  750,
+		Height: 475,
 
 		OnStartup:  app.startup,
 		OnShutdown: app.shutdown,

@@ -20,25 +20,11 @@ export namespace main {
 	        this.key = source["key"];
 	    }
 	}
-	export class Command {
-	    type: string;
-	    params: {[key: string]: any};
-	
-	    static createFrom(source: any = {}) {
-	        return new Command(source);
-	    }
-	
-	    constructor(source: any = {}) {
-	        if ('string' === typeof source) source = JSON.parse(source);
-	        this.type = source["type"];
-	        this.params = source["params"];
-	    }
-	}
 	export class Action {
 	    icon: string;
 	    title: string;
-	    // Go type: Command
-	    command: any;
+	    type: string;
+	    params: {[key: string]: any};
 	    // Go type: Shortcut
 	    shortcut: any;
 	
@@ -50,7 +36,8 @@ export namespace main {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.icon = source["icon"];
 	        this.title = source["title"];
-	        this.command = this.convertValues(source["command"], null);
+	        this.type = source["type"];
+	        this.params = source["params"];
 	        this.shortcut = this.convertValues(source["shortcut"], null);
 	    }
 	
@@ -73,7 +60,6 @@ export namespace main {
 		}
 	}
 	export class SearchItem {
-	    key: string;
 	    icon: string;
 	    title: string;
 	    subtitle: string;
@@ -87,7 +73,6 @@ export namespace main {
 	
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
-	        this.key = source["key"];
 	        this.icon = source["icon"];
 	        this.title = source["title"];
 	        this.subtitle = source["subtitle"];
