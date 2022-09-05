@@ -29,12 +29,18 @@ export function RaycastCMDK() {
 
   // Add root items
   React.useEffect(() => {
+    function buildKey(searchItem: main.SearchItem) {
+      return [searchItem.title, ...(searchItem.keywords || [])]
+        .join(" ")
+        .toLowerCase();
+    }
     App.RootItems().then((items) => {
       const itemMap = Object.fromEntries(
-        items.map((item) => [item.title.trim().toLowerCase(), item])
+        items.map((item) => [buildKey(item), item])
       );
+      runtime.LogDebug(JSON.stringify(itemMap));
       setItems(itemMap);
-      setFocusedValue(items[0]?.title.trim().toLowerCase() || "")
+      setFocusedValue(items[0] ? buildKey(items[0]) : "");
     });
   }, [generator]);
 
@@ -53,7 +59,7 @@ export function RaycastCMDK() {
       return;
     }
     if (IsPushListCommand(command)) {
-      setGenerator(command.params.scriptpath)
+      setGenerator(command.params.scriptpath);
     }
   }
 
@@ -154,7 +160,7 @@ function Item({
   onSelect: () => void;
 }) {
   return (
-    <Command.Item value={value} onSelect={onSelect}>
+    <Command.Item value={value} onSelect={onSelect} onPointerMove={(e) => (e.preventDefault())}>
       {item.icon ? <ItemIcon icon={item.icon} /> : <TerminalIcon />}
       {item.title}
       <span cmdk-raycast-subtitle="">{item.subtitle}</span>

@@ -1,25 +1,24 @@
 package main
 
 type SearchItem struct {
-	Key            string   `json:"key"`
 	Icon           string   `json:"icon"`
-	Title          string   `json:"title"`
+	Title          string   `json:"title" validate:"required"`
 	Subtitle       string   `json:"subtitle"`
 	AccessoryTitle string   `json:"accessory_title"`
 	Keywords       []string `json:"keywords"`
-	Actions        []Action `json:"actions"`
+	Actions        []Action `json:"actions" validate:"required,dive"`
 }
 
 type Action struct {
 	Icon     string   `json:"icon"`
-	Title    string   `json:"title"`
-	Command  Command  `json:"command"`
+	Title    string   `json:"title" validate:"required"`
+	Command  Command  `json:"command" validate:"required"`
 	Shortcut Shortcut `json:"shortcut"`
 }
 
 type Command struct {
-	Type   CommandType            `json:"type"`
-	Params map[string]interface{} `json:"params"`
+	Type   string                 `json:"type" validate:"required"`
+	Params map[string]interface{} `json:"params" validate:"required"`
 }
 
 type Shortcut struct {
@@ -27,46 +26,63 @@ type Shortcut struct {
 	Shift bool   `json:"shift"`
 	Alt   bool   `json:"alt"`
 	Super bool   `json:"super"`
-	Key   string `json:"key"`
+	Key   string `json:"key" validate:"required"`
 }
 
-type CommandType string
+type CommandType int
 
 const (
-	OpenFile        = "open-file"
-	OpenUrl         = "open-url"
-	CopyToClipboard = "copy-to-clipboard"
-	RunScript       = "run-script"
-	PushList        = "push-list"
+	OpenFile CommandType = iota + 1
+	OpenUrl
+	CopyToClipboard
+	RunScript
+	PushList
 )
 
+func (c CommandType) String() string {
+	switch c {
+	case OpenFile:
+		return "open-file"
+	case OpenUrl:
+		return "open-url"
+	case CopyToClipboard:
+		return "copy-to-clipboard"
+	case RunScript:
+		return "run-script"
+	case PushList:
+		return "push-list"
+	default:
+		return "unknown"
+	}
+}
+
 func NewOpenCommand(filepath string) Command {
-	return Command{Type: OpenFile, Params: map[string]interface{}{
+	return Command{Type: OpenFile.String(), Params: map[string]interface{}{
 		"filepath": filepath,
 	}}
 }
 
 func NewOpenInBrowserCommand(url string) Command {
-	return Command{Type: OpenUrl, Params: map[string]interface{}{
+	return Command{Type: OpenUrl.String(), Params: map[string]interface{}{
 		"url": url,
 	}}
 }
 
 func NewCopyToClipboardCommand(content string) Command {
-	return Command{Type: CopyToClipboard, Params: map[string]interface{}{
+	return Command{Type: CopyToClipboard.String(), Params: map[string]interface{}{
 		"content": content,
 	}}
 }
 
-func RunScriptCommand(scriptPath string, args ...string) Command {
-	return Command{Type: RunScript, Params: map[string]interface{}{
+func NewRunScriptCommand(scriptPath string, args []string, mode string) Command {
+	return Command{Type: RunScript.String(), Params: map[string]interface{}{
 		"scriptpath": scriptPath,
 		"args":       args,
 	}}
 }
 
-func PushListCommand(mode string, scriptPath string, args []string) Command {
-	return Command{Type: RunScript, Params: map[string]interface{}{
+func NewPushListCommand(scriptPath string, args []string, mode string) Command {
+	return Command{Type: RunScript.String(), Params: map[string]interface{}{
 		"scriptpath": scriptPath, "mode": mode,
 	}}
 }
