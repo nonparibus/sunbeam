@@ -112,6 +112,12 @@ func (i *IconFinder) getIconPath(iconName string, iconType string, acceptedExten
 		if ok {
 			return iconValue, true
 		}
+
+		iconKey = fmt.Sprintf("%s-symbolic.%s", iconName, extension)
+		iconValue, ok = i.iconMap[iconKey]
+		if ok {
+			return iconValue, true
+		}
 	}
 	return "", false
 }
@@ -152,7 +158,10 @@ func (h *FileLoader) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 		var ok bool
 		iconPath, ok = h.iconFinder.getIconPath(iconName, iconType, []string{"svg", "png"})
 		if !ok {
-			iconPath, _ = h.iconFinder.getIconPath("unknown", iconType, []string{"svg", "png"})
+			iconPath, ok = h.iconFinder.getIconPath("application-x-executable", iconType, []string{"svg", "png"})
+			if !ok {
+				println("IMAGE MISSING", iconName)
+			}
 		}
 	}
 

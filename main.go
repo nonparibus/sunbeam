@@ -2,6 +2,7 @@ package main
 
 import (
 	"embed"
+	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -14,8 +15,23 @@ import (
 //go:embed frontend/dist
 var assets embed.FS
 
+type Args struct {
+	show bool
+}
+
+func parseArgs() Args {
+	args := Args{}
+	flag.BoolVar(&args.show, "show", false, "Show Raycast Window")
+	flag.Parse()
+	return args
+}
+
 func main() {
-	var err error
+	args := parseArgs()
+	if args.show {
+		fmt.Print("Showing")
+		os.Exit(0)
+	}
 
 	currentTheme, err := currentTheme()
 	if err != nil {
@@ -47,9 +63,9 @@ func main() {
 
 	// Create application with options
 	err = wails.Run(&options.App{
-		Title:     "Raycast",
-		Assets:    assets,
-		Frameless: true,
+		Title:  "Raycast",
+		Assets: assets,
+		// Frameless: true,
 		// Buggy on linux
 		// DisableResize: true,
 		AssetsHandler: NewFileLoader(iconFinder),

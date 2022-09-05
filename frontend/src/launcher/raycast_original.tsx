@@ -2,7 +2,7 @@ import React from 'react'
 import * as Popover from '@radix-ui/react-popover'
 import { Command } from 'cmdk'
 import "./raycast.scss"
-import * as runtime from "../../wailsjs/runtime"
+import * as runtime from "../../wailsjs/runtime/runtime"
 
 export function RaycastCMDK() {
   const [value, setValue] = React.useState("linear")

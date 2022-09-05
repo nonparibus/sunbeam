@@ -34,22 +34,24 @@ type ScriptMetadatas struct {
 
 func (s *ScriptCommand) toSearchItem() SearchItem {
 	var primaryAction Action
+	var accessoryTitle string
 	if s.Mode == "filter" || s.Mode == "search" {
 		primaryAction = Action{
 			Title:   "Open Command",
 			Command: NewPushListCommand(s.Path, []string{}, string(s.Mode)),
 		}
+		accessoryTitle = "Command"
 	} else {
 		primaryAction = Action{
 			Title:   "Run Script",
 			Command: NewRunScriptCommand(s.Path, []string{}, string(s.Mode)),
 		}
-
+		accessoryTitle = "Script Command"
 	}
 	return SearchItem{
-		Icon:           s.Icon,
+		IconSource:     s.Icon,
 		Title:          s.Title,
-		AccessoryTitle: "Script Command",
+		AccessoryTitle: accessoryTitle,
 		Actions: []Action{
 			primaryAction,
 		},

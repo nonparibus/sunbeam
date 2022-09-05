@@ -33,10 +33,10 @@ func (a *App) loadRootItems() (err error) {
 		searchItems = append(searchItems, SearchItem{
 			Title:          desktopEntry.Name,
 			AccessoryTitle: "Application",
-			Icon:           desktopEntry.Icon,
+			IconSource:     desktopEntry.Icon,
 			Actions: []Action{
-				{Title: "Open Application", Command: NewOpenCommand(desktopEntryPath)},
-				{Title: "Copy Path", Command: NewCopyToClipboardCommand(desktopEntryPath)},
+				{Title: "Open Application", Icon: "/raycast/icon-app-window-16.svg", Command: NewOpenCommand(desktopEntryPath)},
+				{Title: "Copy Path", Icon: "/raycast/icon-copy-clipboard-16.svg", Command: NewCopyToClipboardCommand(desktopEntryPath)},
 			},
 		})
 	}

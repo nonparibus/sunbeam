@@ -16,8 +16,13 @@ for word in query.split():
         json.dumps(
             {
                 "title": word,
+                "subtitle": "truc",
+                "accessory_title": "test",
+                "icon": "https://...",
+                "keywords": [],
+                "fill": "test",
                 "actions": [
-                    {"title": "word", "type": "copy-to-clibpboard", "params": {"content": "word"}}
+                    {"title": "word", "type": "copy-to-clibpboard", "content": "test"}
                 ],
             }
         )

@@ -10,12 +10,14 @@ import {
   isOpenAction,
   IsPushListAction,
   isRunScriptAction,
+  Generator,
 } from "./commands";
 import * as Popover from "@radix-ui/react-popover";
+import { ReactSVG } from "react-svg";
 
-window.onblur = () => {
-  runtime.WindowHide();
-};
+// window.onblur = () => {
+//   runtime.WindowHide();
+// };
 
 export function RaycastCMDK() {
   const inputRef = React.useRef<HTMLInputElement | null>(null);
@@ -23,7 +25,7 @@ export function RaycastCMDK() {
   const [query, setQuery] = React.useState("");
   const [focusedValue, setFocusedValue] = React.useState("");
   const [items, setItems] = React.useState<Record<string, main.SearchItem>>();
-  const [generator, setGenerator] = React.useState<string>();
+  const [generator, setGenerator] = React.useState<Generator>();
 
   const focusedItem = items && items[focusedValue];
 
@@ -34,11 +36,11 @@ export function RaycastCMDK() {
         .join(" ")
         .toLowerCase();
     }
+
     App.RootItems().then((items) => {
       const itemMap = Object.fromEntries(
         items.map((item) => [buildKey(item), item])
       );
-      runtime.LogDebug(JSON.stringify(itemMap));
       setItems(itemMap);
       setFocusedValue(items[0] ? buildKey(items[0]) : "");
     });
@@ -59,7 +61,9 @@ export function RaycastCMDK() {
       return;
     }
     if (IsPushListAction(action)) {
-      setGenerator(action.params.scriptpath);
+      runtime.LogPrint("Pushiiing...");
+      setGenerator(action.params);
+      return;
     }
   }
 
@@ -84,8 +88,16 @@ export function RaycastCMDK() {
         shouldFilter={true}
         value={focusedValue}
         onKeyDown={(e) => {
-          if (e.key === "Escape" || (e.key === "Backspace" && !query)) {
-            e.preventDefault();
+          if (e.key === "Escape") {
+            if (generator) {
+              setGenerator(undefined);
+            } else {
+              runtime.WindowHide();
+            }
+          } else if (e.key === "Tab") {
+            if (focusedItem?.fill) {
+              setQuery(focusedItem.fill)
+            }
           }
         }}
         onValueChange={setFocusedValue}
@@ -146,10 +158,6 @@ export function RaycastCMDK() {
   );
 }
 
-function ItemIcon({ icon }: { icon: string }) {
-  return <img width={24} height={24} src={`/${icon}`} />;
-}
-
 function Item({
   item,
   onSelect,
@@ -160,8 +168,16 @@ function Item({
   onSelect: () => void;
 }) {
   return (
-    <Command.Item value={value} onSelect={onSelect} onPointerMove={(e) => (e.preventDefault())}>
-      {item.icon ? <ItemIcon icon={item.icon} /> : <TerminalIcon />}
+    <Command.Item
+      value={value}
+      onSelect={onSelect}
+      onPointerMove={(e) => e.preventDefault()}
+    >
+      {item.icon_src ? (
+        <img width={24} height={24} src={item.icon_src} />
+      ) : (
+        <TerminalIcon />
+      )}
       {item.title}
       <span cmdk-raycast-subtitle="">{item.subtitle}</span>
       <span cmdk-raycast-accessory-title="">{item.accessory_title}</span>
@@ -213,13 +229,30 @@ function RaycastMenu({
         <Command>
           <Command.List>
             <Command.Group heading="Raycast">
-              <Command.Item>Manual</Command.Item>
-              <Command.Item>Switch to Dark Mode</Command.Item>
+              <Command.Item className="test">
+                <RaycastIcon src="/raycast/icon-question-mark-circle-16.svg" />
+                Manual
+              </Command.Item>
+              <Command.Item>
+                <RaycastIcon src="/raycast/icon-moon-16.svg" />
+                Switch to Dark Mode
+              </Command.Item>
+
+              <Command.Item>
+                <RaycastIcon src="/raycast/icon-raycast-logo-neg-16.svg" />
+                About Raycast
+              </Command.Item>
+              <Command.Item>
+                <RaycastIcon src="/raycast/icon-cog-16.svg" />
+                Preferences
+              </Command.Item>
+
               <Command.Item
                 onSelect={() => {
                   runtime.Quit();
                 }}
               >
+                <RaycastIcon src="/raycast/icon-logout-16.svg" />
                 Quit Raycast
               </Command.Item>
             </Command.Group>
@@ -228,6 +261,18 @@ function RaycastMenu({
         </Command>
       </Popover.Content>
     </Popover.Root>
+  );
+}
+
+function RaycastIcon({ src }: { src: string }) {
+  return (
+    <ReactSVG
+      src={src}
+      beforeInjection={(svg) => {
+        const rect = svg.querySelector("rect");
+        rect?.setAttribute("fill", "none");
+      }}
+    />
   );
 }
 
@@ -298,6 +343,7 @@ function SubCommand({
             <Command.Group heading={focusedItem?.title}>
               {focusedItem?.actions.map((action) => (
                 <Command.Item onSelect={() => onAction(action)}>
+                  <RaycastIcon src={action.icon} />
                   {action.title}
                   <div cmdk-raycast-submenu-shortcuts="">
                     {action.shortcut.key ? (

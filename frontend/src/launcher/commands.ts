@@ -29,9 +29,13 @@ export function isRunScriptAction(cmd: main.Action): cmd is RunScriptAction {
 
 export interface PushListAction extends main.Action {
     type: "push-list",
-    params: {scriptpath: string, cwd: string}
+    params: Generator
+}
+
+export interface Generator {
+    path: string, mode: "filter" | "search"
 }
 
 export function IsPushListAction(cmd: main.Action): cmd is PushListAction {
-    return cmd.type === "list"
+    return cmd.type === "push-list"
 }

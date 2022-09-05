@@ -1,9 +1,10 @@
 package main
 
 type SearchItem struct {
-	Icon           string   `json:"icon"`
+	IconSource     string   `json:"icon_src"`
 	Title          string   `json:"title" validate:"required"`
 	Subtitle       string   `json:"subtitle"`
+	Fill           string   `json:"fill"`
 	AccessoryTitle string   `json:"accessory_title"`
 	Keywords       []string `json:"keywords"`
 	Actions        []Action `json:"actions" validate:"required,gte=1,dive"`
@@ -27,6 +28,23 @@ type Shortcut struct {
 	Alt   bool   `json:"alt"`
 	Super bool   `json:"super"`
 	Key   string `json:"key" validate:"required"`
+}
+
+func (c Command) Icon() string {
+	switch c.Type {
+	case "open-file":
+		return "/raycast/icon-blank-document-16.svg"
+	case "open-url":
+		return "/raycast/icon-globe-01-16.svg"
+	case "copy-to-clipboard":
+		return "/raycast/icon-copy-clipboard-16.svg"
+	case "run-script":
+		return "/raycast/icon-globe-01-16.svg"
+	case "push-list":
+		return "/raycast/app-window-list-16.svg"
+	default:
+		return ""
+	}
 }
 
 func NewOpenCommand(filepath string) Command {

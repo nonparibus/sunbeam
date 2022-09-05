@@ -60,9 +60,10 @@ export namespace main {
 		}
 	}
 	export class SearchItem {
-	    icon: string;
+	    icon_src: string;
 	    title: string;
 	    subtitle: string;
+	    fill: string;
 	    accessory_title: string;
 	    keywords: string[];
 	    actions: Action[];
@@ -73,9 +74,10 @@ export namespace main {
 	
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
-	        this.icon = source["icon"];
+	        this.icon_src = source["icon_src"];
 	        this.title = source["title"];
 	        this.subtitle = source["subtitle"];
+	        this.fill = source["fill"];
 	        this.accessory_title = source["accessory_title"];
 	        this.keywords = source["keywords"];
 	        this.actions = this.convertValues(source["actions"], Action);
