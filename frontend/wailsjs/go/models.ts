@@ -78,6 +78,7 @@ export namespace main {
 	    title: string;
 	    subtitle: string;
 	    accessory_title: string;
+	    keywords: string[];
 	    actions: Action[];
 	
 	    static createFrom(source: any = {}) {
@@ -91,6 +92,7 @@ export namespace main {
 	        this.title = source["title"];
 	        this.subtitle = source["subtitle"];
 	        this.accessory_title = source["accessory_title"];
+	        this.keywords = source["keywords"];
 	        this.actions = this.convertValues(source["actions"], Action);
 	    }
 	

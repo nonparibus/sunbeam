@@ -34,6 +34,7 @@ export function RaycastCMDK() {
         items.map((item) => [item.title.trim().toLowerCase(), item])
       );
       setItems(itemMap);
+      setFocusedValue(items[0]?.title.trim().toLowerCase() || "")
     });
   }, [generator]);
 

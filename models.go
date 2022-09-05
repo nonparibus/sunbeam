@@ -6,6 +6,7 @@ type SearchItem struct {
 	Title          string   `json:"title"`
 	Subtitle       string   `json:"subtitle"`
 	AccessoryTitle string   `json:"accessory_title"`
+	Keywords       []string `json:"keywords"`
 	Actions        []Action `json:"actions"`
 }
 

@@ -25,7 +25,6 @@ func main() {
 	iconFinder := NewIconFinder()
 	themes := []string{
 		"hicolor",
-		"Humanity",
 		currentTheme,
 	}
 	for _, theme := range themes {
