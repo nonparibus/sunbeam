@@ -1,8 +1,10 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
+	"io"
 	"os"
 	"os/exec"
 	"path"
@@ -23,31 +25,30 @@ func NewApp() *App {
 }
 
 func (a *App) loadRootItems() (err error) {
+	searchItems := make([]SearchItem, 0)
+
+	scriptCommands, err := ScanScriptDirs()
+	if err != nil {
+		return
+	}
+	for _, scriptCommand := range scriptCommands {
+		searchItems = append(searchItems, scriptCommand.toSearchItem())
+	}
+
 	entryMap, err := ScanDesktopEntries()
 	if err != nil {
 		return
 	}
-
-	searchItems := make([]SearchItem, 0, len(entryMap))
 	for desktopEntryPath, desktopEntry := range entryMap {
 		searchItems = append(searchItems, SearchItem{
 			Title:          desktopEntry.Name,
 			AccessoryTitle: "Application",
 			IconSource:     desktopEntry.Icon,
 			Actions: []Action{
-				{Title: "Open Application", Icon: "/raycast/icon-app-window-16.svg", Command: NewOpenCommand(desktopEntryPath)},
-				{Title: "Copy Path", Icon: "/raycast/icon-copy-clipboard-16.svg", Command: NewCopyToClipboardCommand(desktopEntryPath)},
+				NewOpenAction("Open Application", desktopEntryPath),
+				NewCopyToClipboardAction("Copy Path", desktopEntryPath),
 			},
 		})
-	}
-
-	scriptCommands, err := ScanScriptDirs()
-	if err != nil {
-		return
-	}
-
-	for _, scriptCommand := range scriptCommands {
-		searchItems = append(searchItems, scriptCommand.toSearchItem())
 	}
 
 	a.rootItems = searchItems
@@ -94,9 +95,29 @@ func (a *App) RunListCommand(scriptPath string) (items []SearchItem, err error) 
 	if err != nil {
 		return
 	}
+	reader := bytes.NewReader(output)
+	decoder := json.NewDecoder(reader)
 
-	err = json.Unmarshal(output, &items)
-	return
+	searchItems := make([]SearchItem, 0)
+	for {
+		var current SearchItem
+		err := decoder.Decode(&current)
+		if err != nil {
+			if err != io.EOF {
+				return nil, err
+			}
+			break
+		}
+
+		err = validate.Struct(current)
+		if err != nil {
+			return nil, err
+		}
+		searchItems = append(searchItems, current)
+	}
+
+	return searchItems, nil
+
 }
 
 // startup is called when the app starts. The context is saved

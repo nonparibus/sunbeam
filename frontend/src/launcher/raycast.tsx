@@ -5,13 +5,6 @@ import { TerminalIcon, RaycastLightIcon } from "./icons";
 import * as App from "../../wailsjs/go/main/App";
 import { main } from "../../wailsjs/go/models";
 import * as runtime from "../../wailsjs/runtime/runtime";
-import {
-  isCopyToClipboardAction,
-  isOpenAction,
-  IsPushListAction,
-  isRunScriptAction,
-  Generator,
-} from "./commands";
 import * as Popover from "@radix-ui/react-popover";
 import { ReactSVG } from "react-svg";
 
@@ -24,46 +17,61 @@ export function RaycastCMDK() {
   const listRef = React.useRef(null);
   const [query, setQuery] = React.useState("");
   const [focusedValue, setFocusedValue] = React.useState("");
-  const [items, setItems] = React.useState<Record<string, main.SearchItem>>();
-  const [generator, setGenerator] = React.useState<Generator>();
+  const [pages, setPages] = React.useState<
+    {
+      items: Record<string, main.SearchItem>;
+      query?: string;
+      focusedValue?: string;
+    }[]
+  >([]);
 
-  const focusedItem = items && items[focusedValue];
+  const currentPage = pages[pages.length - 1];
+  const focusedItem = currentPage.items && currentPage.items[focusedValue];
 
-  // Add root items
+  function buildKey(searchItem: main.SearchItem) {
+    return [searchItem.title, ...(searchItem.keywords || [])]
+      .join(" ")
+      .toLowerCase();
+  }
+
+  // Add root items on first load
   React.useEffect(() => {
-    function buildKey(searchItem: main.SearchItem) {
-      return [searchItem.title, ...(searchItem.keywords || [])]
-        .join(" ")
-        .toLowerCase();
-    }
-
     App.RootItems().then((items) => {
       const itemMap = Object.fromEntries(
         items.map((item) => [buildKey(item), item])
       );
-      setItems(itemMap);
-      setFocusedValue(items[0] ? buildKey(items[0]) : "");
+      setPages([{ items: itemMap }]);
     });
-  }, [generator]);
+  }, []);
+
+  // restore the query when the current page change
+  React.useEffect(() => {
+    setQuery(currentPage.query || "");
+    setFocusedValue(currentPage.focusedValue || "");
+  }, [currentPage]);
 
   function handleAction(action: main.Action) {
     runtime.LogDebug(`Handling Action: ${JSON.stringify(action)}`);
-    if (isCopyToClipboardAction(action)) {
-      App.CopyToClipboard(action.params.content);
-      return;
-    }
-    if (isOpenAction(action)) {
-      App.OpenFile(action.params.filepath);
-      return;
-    }
-    if (isRunScriptAction(action)) {
-      App.RunScript(action.params.scriptpath, []);
-      return;
-    }
-    if (IsPushListAction(action)) {
-      runtime.LogPrint("Pushiiing...");
-      setGenerator(action.params);
-      return;
+    switch (action.type) {
+      case "open":
+        App.OpenFile(action.path);
+        return;
+      case "copy-to-clipboard":
+        App.CopyToClipboard(action.content);
+        return;
+      case "run-script":
+        App.RunScript(action.path, []);
+        return;
+      case "run-command":
+        App.RunListCommand(action.path).then((items) => {
+          const itemMap = Object.fromEntries(
+            items.map((item) => [buildKey(item), item])
+          );
+          currentPage.query = query;
+          currentPage.focusedValue = focusedValue;
+          setPages([...pages, { items: itemMap }]);
+          return;
+        });
     }
   }
 
@@ -89,14 +97,10 @@ export function RaycastCMDK() {
         value={focusedValue}
         onKeyDown={(e) => {
           if (e.key === "Escape") {
-            if (generator) {
-              setGenerator(undefined);
-            } else {
-              runtime.WindowHide();
-            }
+            setPages(pages.slice(0, -1));
           } else if (e.key === "Tab") {
             if (focusedItem?.fill) {
-              setQuery(focusedItem.fill)
+              setQuery(focusedItem.fill);
             }
           }
         }}
@@ -114,7 +118,7 @@ export function RaycastCMDK() {
         <Command.List ref={listRef}>
           <Command.Empty>No Result Found.</Command.Empty>
           <Command.Group heading="Results">
-            {Object.entries(items || {}).map(([key, item]) => (
+            {Object.entries(currentPage.items || {}).map(([key, item]) => (
               <Item
                 item={item}
                 key={key}
@@ -345,11 +349,11 @@ function SubCommand({
                 <Command.Item onSelect={() => onAction(action)}>
                   <RaycastIcon src={action.icon} />
                   {action.title}
-                  <div cmdk-raycast-submenu-shortcuts="">
+                  {/* <div cmdk-raycast-submenu-shortcuts="">
                     {action.shortcut.key ? (
                       <Shortcut shortcut={action.shortcut} />
                     ) : null}
-                  </div>
+                  </div> */}
                 </Command.Item>
               ))}
             </Command.Group>
@@ -361,14 +365,14 @@ function SubCommand({
   );
 }
 
-function Shortcut({ shortcut }: { shortcut: main.Shortcut }) {
-  return (
-    <div>
-      {shortcut.super ? <kbd key="⌘">⌘</kbd> : null}
-      {shortcut.ctrl ? <kbd key="⌃">⌃</kbd> : null}
-      {shortcut.alt ? <kbd key="⌥">⌥</kbd> : null}
-      {shortcut.shift ? <kbd key="⇧">⇧</kbd> : null}
-      <kbd key={shortcut.key}>{shortcut.key.toUpperCase()}</kbd>
-    </div>
-  );
-}
+// function Shortcut({ shortcut }: { shortcut: main.Shortcut }) {
+//   return (
+//     <div>
+//       {shortcut.super ? <kbd key="⌘">⌘</kbd> : null}
+//       {shortcut.ctrl ? <kbd key="⌃">⌃</kbd> : null}
+//       {shortcut.alt ? <kbd key="⌥">⌥</kbd> : null}
+//       {shortcut.shift ? <kbd key="⇧">⇧</kbd> : null}
+//       <kbd key={shortcut.key}>{shortcut.key.toUpperCase()}</kbd>
+//     </div>
+//   );
+// }

@@ -36,16 +36,10 @@ func (s *ScriptCommand) toSearchItem() SearchItem {
 	var primaryAction Action
 	var accessoryTitle string
 	if s.Mode == "filter" || s.Mode == "search" {
-		primaryAction = Action{
-			Title:   "Open Command",
-			Command: NewPushListCommand(s.Path, []string{}, string(s.Mode)),
-		}
+		primaryAction = NewRunCommandAction("Run Command", s.Path)
 		accessoryTitle = "Command"
 	} else {
-		primaryAction = Action{
-			Title:   "Run Script",
-			Command: NewRunScriptCommand(s.Path, []string{}, string(s.Mode)),
-		}
+		primaryAction = NewRunScriptAction("Run Script", s.Path)
 		accessoryTitle = "Script Command"
 	}
 	return SearchItem{
@@ -127,7 +121,16 @@ func ScanScriptDir(scriptDir string) ([]ScriptCommand, error) {
 }
 
 func ScanScriptDirs() (scriptCommands []ScriptCommand, err error) {
-	for _, dir := range xdg.DataDirs {
+	commandDirs := make([]string, 0)
+	if os.Getenv("RAYCAST_COMMAND_DIR") != "" {
+		commandDirs = append(commandDirs, os.Getenv("RAYCAST_DATA_DIR"))
+	}
+	commandDirs = append(commandDirs, path.Join(xdg.DataHome, "raycast"))
+	for _, dataDir := range xdg.DataDirs {
+		commandDirs = append(commandDirs, path.Join(dataDir, "raycast"))
+	}
+
+	for _, dir := range commandDirs {
 		scriptDir := path.Join(dir, "raycast")
 		if _, err := os.Stat(scriptDir); os.IsNotExist(err) {
 			continue

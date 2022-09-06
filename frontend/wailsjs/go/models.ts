@@ -1,32 +1,13 @@
 export namespace main {
 	
-	export class Shortcut {
-	    ctrl: boolean;
-	    shift: boolean;
-	    alt: boolean;
-	    super: boolean;
-	    key: string;
-	
-	    static createFrom(source: any = {}) {
-	        return new Shortcut(source);
-	    }
-	
-	    constructor(source: any = {}) {
-	        if ('string' === typeof source) source = JSON.parse(source);
-	        this.ctrl = source["ctrl"];
-	        this.shift = source["shift"];
-	        this.alt = source["alt"];
-	        this.super = source["super"];
-	        this.key = source["key"];
-	    }
-	}
 	export class Action {
 	    icon: string;
 	    title: string;
 	    type: string;
-	    params: {[key: string]: any};
-	    // Go type: Shortcut
-	    shortcut: any;
+	    content: string;
+	    path: string;
+	    url: string;
+	    args: string[];
 	
 	    static createFrom(source: any = {}) {
 	        return new Action(source);
@@ -37,27 +18,11 @@ export namespace main {
 	        this.icon = source["icon"];
 	        this.title = source["title"];
 	        this.type = source["type"];
-	        this.params = source["params"];
-	        this.shortcut = this.convertValues(source["shortcut"], null);
+	        this.content = source["content"];
+	        this.path = source["path"];
+	        this.url = source["url"];
+	        this.args = source["args"];
 	    }
-	
-		convertValues(a: any, classs: any, asMap: boolean = false): any {
-		    if (!a) {
-		        return a;
-		    }
-		    if (a.slice) {
-		        return (a as any[]).map(elem => this.convertValues(elem, classs));
-		    } else if ("object" === typeof a) {
-		        if (asMap) {
-		            for (const key of Object.keys(a)) {
-		                a[key] = new classs(a[key]);
-		            }
-		            return a;
-		        }
-		        return new classs(a);
-		    }
-		    return a;
-		}
 	}
 	export class SearchItem {
 	    icon_src: string;

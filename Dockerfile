@@ -19,3 +19,5 @@ RUN sudo wget https://github.com/AppImage/AppImageKit/releases/download/continuo
     && sudo chmod +x /usr/local/bin/appimagetool
     
 RUN go install github.com/wailsapp/wails/v2/cmd/wails@latest
+
+ENV RAYCAST_COMMAND_DIR /workspace/raycast-linux/script_commands

@@ -11,15 +11,13 @@ type SearchItem struct {
 }
 
 type Action struct {
-	Icon  string `json:"icon"`
-	Title string `json:"title" validate:"required"`
-	Command
-	Shortcut Shortcut `json:"shortcut"`
-}
-
-type Command struct {
-	Type   string                 `json:"type" validate:"required"`
-	Params map[string]interface{} `json:"params" validate:"required"`
+	Icon    string   `json:"icon"`
+	Title   string   `json:"title" validate:"required"`
+	Type    string   `json:"type" validate:"required"`
+	Content string   `json:"content"`
+	Path    string   `json:"path"`
+	Url     string   `json:"url"`
+	Args    []string `json:"args"`
 }
 
 type Shortcut struct {
@@ -27,53 +25,52 @@ type Shortcut struct {
 	Shift bool   `json:"shift"`
 	Alt   bool   `json:"alt"`
 	Super bool   `json:"super"`
-	Key   string `json:"key" validate:"required"`
+	Key   string `json:"key"`
 }
 
-func (c Command) Icon() string {
-	switch c.Type {
-	case "open-file":
-		return "/raycast/icon-blank-document-16.svg"
-	case "open-url":
-		return "/raycast/icon-globe-01-16.svg"
-	case "copy-to-clipboard":
-		return "/raycast/icon-copy-clipboard-16.svg"
-	case "run-script":
-		return "/raycast/icon-globe-01-16.svg"
-	case "push-list":
-		return "/raycast/app-window-list-16.svg"
+type CommandType int
+
+const (
+	Open CommandType = iota + 1
+	OpenInBrowser
+	CopyToClipboard
+	RunScript
+	RunCommand
+)
+
+func (c CommandType) String() string {
+	switch c {
+	case Open:
+		return "open"
+	case OpenInBrowser:
+		return "open-in-browser"
+	case CopyToClipboard:
+		return "copy-to-clipboard"
+	case RunScript:
+		return "run-script"
+	case RunCommand:
+		return "run-command"
 	default:
 		return ""
 	}
 }
 
-func NewOpenCommand(filepath string) Command {
-	return Command{Type: "open-file", Params: map[string]interface{}{
-		"filepath": filepath,
-	}}
+func NewOpenAction(title string, path string) Action {
+	return Action{Title: title, Icon: "/raycast/icon-app-window-16.svg", Type: Open.String(), Path: path}
 }
 
-func NewOpenInBrowserCommand(url string) Command {
-	return Command{Type: "open-url", Params: map[string]interface{}{
-		"url": url,
-	}}
+func NewOpenInBrowser(title string, icon string, url string) Action {
+	return Action{Title: title, Icon: icon, Type: OpenInBrowser.String(), Url: url}
 }
 
-func NewCopyToClipboardCommand(content string) Command {
-	return Command{Type: "copy-to-clipboard", Params: map[string]interface{}{
-		"content": content,
-	}}
+func NewCopyToClipboardAction(title string, content string) Action {
+	return Action{Icon: "/raycast/icon-copy-clipboard-16.svg", Type: CopyToClipboard.String(), Content: content}
 }
 
-func NewRunScriptCommand(scriptPath string, args []string, mode string) Command {
-	return Command{Type: "run-script", Params: map[string]interface{}{
-		"scriptpath": scriptPath,
-		"args":       args,
-	}}
+func NewRunScriptAction(title string, path string, args ...string) Action {
+	return Action{Title: title, Icon: "raycast/icon-terminal-16.svg", Type: RunScript.String(), Path: path}
 }
 
-func NewPushListCommand(scriptPath string, args []string, mode string) Command {
-	return Command{Type: "push-list", Params: map[string]interface{}{
-		"scriptpath": scriptPath, "mode": mode,
-	}}
+func NewRunCommandAction(title string, path string, args ...string) Action {
+	return Action{Type: RunCommand.String(), Icon: "raycast/icon-window-list-16.svg", Args: args}
 }
