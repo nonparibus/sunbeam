@@ -1,4 +1,4 @@
-import React from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 import "./raycast.scss";
 import { Command } from "cmdk";
 import { TerminalIcon, RaycastLightIcon } from "./icons";
@@ -12,43 +12,36 @@ import { ReactSVG } from "react-svg";
 //   runtime.WindowHide();
 // };
 
-export function RaycastCMDK() {
+function buildKey(listItem: main.ListItem) {
+  return [listItem.title, ...(listItem.keywords || [])].join(" ").toLowerCase();
+}
+
+export function Raycast() {
+  return <ListCommand fetcher={App.RootItems} />;
+}
+
+export function ListCommand({
+  fetcher, goBack
+}: {
+  fetcher: () => Promise<main.ListItem[]>;
+  goBack?: () => void;
+}) {
   const inputRef = React.useRef<HTMLInputElement | null>(null);
   const listRef = React.useRef(null);
+
+  const [items, setItems] = useState<Record<string, main.ListItem>>({});
   const [query, setQuery] = React.useState("");
   const [focusedValue, setFocusedValue] = React.useState("");
-  const [pages, setPages] = React.useState<
-    {
-      items: Record<string, main.SearchItem>;
-      query?: string;
-      focusedValue?: string;
-    }[]
-  >([]);
+  const focusedItem = items[focusedValue];
 
-  const currentPage = pages[pages.length - 1];
-  const focusedItem = currentPage.items && currentPage.items[focusedValue];
-
-  function buildKey(searchItem: main.SearchItem) {
-    return [searchItem.title, ...(searchItem.keywords || [])]
-      .join(" ")
-      .toLowerCase();
-  }
+  const [next, setNext] = useState<JSX.Element>();
 
   // Add root items on first load
   React.useEffect(() => {
-    App.RootItems().then((items) => {
-      const itemMap = Object.fromEntries(
-        items.map((item) => [buildKey(item), item])
-      );
-      setPages([{ items: itemMap }]);
+    fetcher().then((items) => {
+      setItems(Object.fromEntries(items.map((item) => [buildKey(item), item])));
     });
   }, []);
-
-  // restore the query when the current page change
-  React.useEffect(() => {
-    setQuery(currentPage.query || "");
-    setFocusedValue(currentPage.focusedValue || "");
-  }, [currentPage]);
 
   function handleAction(action: main.Action) {
     runtime.LogDebug(`Handling Action: ${JSON.stringify(action)}`);
@@ -63,102 +56,90 @@ export function RaycastCMDK() {
         App.RunScript(action.path, []);
         return;
       case "run-command":
-        App.RunListCommand(action.path).then((items) => {
-          const itemMap = Object.fromEntries(
-            items.map((item) => [buildKey(item), item])
-          );
-          currentPage.query = query;
-          currentPage.focusedValue = focusedValue;
-          setPages([...pages, { items: itemMap }]);
-          return;
-        });
+        const fetcher = () =>
+          App.RunListCommand(action.path).then((res) => res.list_items);
+        setNext(
+          <ListCommand fetcher={fetcher} goBack={() => setNext(undefined)} />
+        );
+        return;
     }
   }
-
-  // Listen for commands
-  React.useEffect(() => {
-    runtime.EventsOn("toggle", () => {
-      runtime.WindowCenter();
-      runtime.WindowShow();
-    });
-    return () => {
-      runtime.EventsOff("toggle");
-    };
-  }, []);
 
   React.useEffect(() => {
     inputRef?.current?.focus();
   }, []);
 
   return (
-    <div className="raycast">
-      <Command
-        shouldFilter={true}
-        value={focusedValue}
-        onKeyDown={(e) => {
-          if (e.key === "Escape") {
-            setPages(pages.slice(0, -1));
-          } else if (e.key === "Tab") {
-            if (focusedItem?.fill) {
-              setQuery(focusedItem.fill);
+    next || (
+      <div className="raycast">
+        <Command
+          shouldFilter={true}
+          value={focusedValue}
+          onKeyDown={(e) => {
+            if (e.key === "Escape") {
+              if (goBack) goBack()
+            } else if (e.key === "Tab") {
+              if (focusedItem?.fill) {
+                setQuery(focusedItem.fill);
+              }
             }
-          }
-        }}
-        onValueChange={setFocusedValue}
-      >
-        <div cmdk-raycast-top-shine="" />
-        <Command.Input
-          ref={inputRef}
-          value={query}
-          onValueChange={setQuery}
-          autoFocus
-          placeholder="Search for apps and commands..."
-        />
-        <hr cmdk-raycast-loader="" />
-        <Command.List ref={listRef}>
-          <Command.Empty>No Result Found.</Command.Empty>
-          <Command.Group heading="Results">
-            {Object.entries(currentPage.items || {}).map(([key, item]) => (
-              <Item
-                item={item}
-                key={key}
-                value={key}
-                onSelect={() => {
-                  handleAction(item.actions[0]);
-                }}
-              />
-            ))}
-          </Command.Group>
-        </Command.List>
+          }}
+          onValueChange={setFocusedValue}
+        >
+          <div cmdk-raycast-top-shine="" />
+          <Command.Input
+            ref={inputRef}
+            value={query}
+            onValueChange={setQuery}
+            autoFocus
+            placeholder="Search for apps and commands..."
+          />
+          <hr cmdk-raycast-loader="" />
+          <Command.List ref={listRef}>
+            <Command.Empty>No Result Found.</Command.Empty>
+            <Command.Group heading="Results">
+              {Object.entries(items || {}).map(([key, item]) => (
+                <Item
+                  item={item}
+                  key={key}
+                  value={key}
+                  onSelect={() => {
+                    handleAction(item.actions[0]);
+                  }}
+                />
+              ))}
+            </Command.Group>
+          </Command.List>
 
-        <div cmdk-raycast-footer="">
-          <div cmd-raycast-submenu="">
-            <RaycastMenu listRef={listRef} inputRef={inputRef} />
+          <div cmdk-raycast-footer="">
+            <div cmd-raycast-submenu="">
+              <RaycastMenu listRef={listRef} inputRef={inputRef} />
+            </div>
+
+            {focusedItem ? (
+              <>
+                <button
+                  cmdk-raycast-subcommand-trigger=""
+                  onClick={() => {
+                    handleAction(focusedItem.actions[0]);
+                  }}
+                >
+                  {focusedItem.actions[0]?.title || ""}
+                  <kbd>↵</kbd>
+                </button>
+                <hr />
+                <SubCommand
+                  listRef={listRef}
+                  focusedItem={focusedItem}
+                  inputRef={inputRef}
+                  onAction={(action) => handleAction(action)}
+                />
+              </>
+            ) : null}
           </div>
-
-          {focusedItem ? (
-            <>
-              <button
-                cmdk-raycast-subcommand-trigger=""
-                onClick={() => {
-                  handleAction(focusedItem.actions[0]);
-                }}
-              >
-                {focusedItem.actions[0]?.title || ""}
-                <kbd>↵</kbd>
-              </button>
-              <hr />
-              <SubCommand
-                listRef={listRef}
-                focusedItem={focusedItem}
-                inputRef={inputRef}
-                onAction={(action) => handleAction(action)}
-              />
-            </>
-          ) : null}
-        </div>
-      </Command>
-    </div>
+        </Command>
+      </div>
+    )
   );
 }
 
@@ -167,7 +148,7 @@ function Item({
   onSelect,
   value,
 }: {
-  item: main.SearchItem;
+  item: main.ListItem;
   value: string;
   onSelect: () => void;
 }) {
@@ -288,7 +269,7 @@ function SubCommand({
 }: {
   inputRef: React.RefObject<HTMLInputElement>;
   listRef: React.RefObject<HTMLElement>;
-  focusedItem?: main.SearchItem;
+  focusedItem?: main.ListItem;
   onAction: (action: main.Action) => void;
 }) {
   const [open, setOpen] = React.useState(false);

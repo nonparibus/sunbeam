@@ -4,7 +4,7 @@
 # @raycast.title Split Sentence
 # @raycast.description description
 # @raycast.packageName package
-# @raycast.mode search
+# @raycast.mode command
 
 import json
 import sys

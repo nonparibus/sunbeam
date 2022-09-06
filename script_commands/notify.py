@@ -27,8 +27,7 @@ print(
     json.dumps(
         {
             "type": "list",
-            "filter": "true",
-            "items": [
+            "list_items": [
                 {
                     "title": sentence,
                     "actions": [
@@ -37,7 +36,7 @@ print(
                             "title": "Copy Sentence",
                             "args": [sentence],
                         },
-                        {"type": "copy-to-clipboard", "content": "sentence"},
+                        {"type": "copy-to-clipboard", "title": "Copy to Clipboard", "content": "sentence"},
                     ],
                 }
                 for sentence in sentences

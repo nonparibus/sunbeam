@@ -8,8 +8,8 @@ export function OpenFile(arg1:string):Promise<Error>;
 
 export function OpenInBrowser(arg1:string):Promise<Error>;
 
-export function RootItems():Promise<Array<main.SearchItem>>;
+export function RootItems():Promise<Array<main.ListItem>>;
 
-export function RunListCommand(arg1:string):Promise<Array<main.SearchItem>>;
+export function RunListCommand(arg1:string):Promise<main.ScriptResponse>;
 
 export function RunScript(arg1:string,arg2:Array<string>):Promise<Error>;

@@ -1,10 +1,8 @@
 package main
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
-	"io"
 	"os"
 	"os/exec"
 	"path"
@@ -16,7 +14,7 @@ import (
 // App struct
 type App struct {
 	ctx       context.Context
-	rootItems []SearchItem
+	rootItems []ListItem
 }
 
 // NewApp creates a new App application struct
@@ -25,7 +23,7 @@ func NewApp() *App {
 }
 
 func (a *App) loadRootItems() (err error) {
-	searchItems := make([]SearchItem, 0)
+	searchItems := make([]ListItem, 0)
 
 	scriptCommands, err := ScanScriptDirs()
 	if err != nil {
@@ -40,7 +38,7 @@ func (a *App) loadRootItems() (err error) {
 		return
 	}
 	for desktopEntryPath, desktopEntry := range entryMap {
-		searchItems = append(searchItems, SearchItem{
+		searchItems = append(searchItems, ListItem{
 			Title:          desktopEntry.Name,
 			AccessoryTitle: "Application",
 			IconSource:     desktopEntry.Icon,
@@ -55,7 +53,7 @@ func (a *App) loadRootItems() (err error) {
 	return
 }
 
-func (a *App) RootItems() []SearchItem {
+func (a *App) RootItems() []ListItem {
 	return a.rootItems
 }
 
@@ -83,7 +81,7 @@ func (a *App) RunScript(scriptPath string, args []string) (err error) {
 	return
 }
 
-func (a *App) RunListCommand(scriptPath string) (items []SearchItem, err error) {
+func (a *App) RunListCommand(scriptPath string) (res ScriptResponse, err error) {
 	err = os.Chmod(scriptPath, 0755)
 	if err != nil {
 		return
@@ -95,28 +93,11 @@ func (a *App) RunListCommand(scriptPath string) (items []SearchItem, err error) 
 	if err != nil {
 		return
 	}
-	reader := bytes.NewReader(output)
-	decoder := json.NewDecoder(reader)
+	json.Unmarshal(output, &res)
+	runtime.LogDebugf(a.ctx, "%s", res)
 
-	searchItems := make([]SearchItem, 0)
-	for {
-		var current SearchItem
-		err := decoder.Decode(&current)
-		if err != nil {
-			if err != io.EOF {
-				return nil, err
-			}
-			break
-		}
-
-		err = validate.Struct(current)
-		if err != nil {
-			return nil, err
-		}
-		searchItems = append(searchItems, current)
-	}
-
-	return searchItems, nil
+	err = validate.Struct(res)
+	return
 
 }
 

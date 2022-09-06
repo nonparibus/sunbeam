@@ -19,7 +19,7 @@
       "preLaunchTask": "build debug",
       "cwd": "${workspaceFolder}",
       "env": {
-        "XDG_DATA_DIRS": "${workspaceFolder}/script_commands"
+        "RAYCAST_COMMAND_DIR": "${workspaceFolder}/script_commands"
       }
     },
     {

@@ -1,6 +1,11 @@
 package main
 
-type SearchItem struct {
+type ScriptResponse struct {
+	Type      string     `json:"type" validate:"required"`
+	ListItems []ListItem `json:"list_items" validate:"dive"`
+}
+
+type ListItem struct {
 	IconSource     string   `json:"icon_src"`
 	Title          string   `json:"title" validate:"required"`
 	Subtitle       string   `json:"subtitle"`
@@ -72,5 +77,5 @@ func NewRunScriptAction(title string, path string, args ...string) Action {
 }
 
 func NewRunCommandAction(title string, path string, args ...string) Action {
-	return Action{Type: RunCommand.String(), Icon: "raycast/icon-window-list-16.svg", Args: args}
+	return Action{Type: RunCommand.String(), Icon: "raycast/icon-window-list-16.svg", Path: path, Args: args}
 }

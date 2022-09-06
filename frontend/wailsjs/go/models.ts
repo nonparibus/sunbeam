@@ -24,7 +24,7 @@ export namespace main {
 	        this.args = source["args"];
 	    }
 	}
-	export class SearchItem {
+	export class ListItem {
 	    icon_src: string;
 	    title: string;
 	    subtitle: string;
@@ -34,7 +34,7 @@ export namespace main {
 	    actions: Action[];
 	
 	    static createFrom(source: any = {}) {
-	        return new SearchItem(source);
+	        return new ListItem(source);
 	    }
 	
 	    constructor(source: any = {}) {
@@ -46,6 +46,38 @@ export namespace main {
 	        this.accessory_title = source["accessory_title"];
 	        this.keywords = source["keywords"];
 	        this.actions = this.convertValues(source["actions"], Action);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class ScriptResponse {
+	    type: string;
+	    list_items: ListItem[];
+	
+	    static createFrom(source: any = {}) {
+	        return new ScriptResponse(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.type = source["type"];
+	        this.list_items = this.convertValues(source["list_items"], ListItem);
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {

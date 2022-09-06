@@ -21,7 +21,7 @@ type ScriptCommand struct {
 type ScriptMetadatas struct {
 	SchemaVersion        int    `validate:"required,eq=1"`
 	Title                string `validate:"required"`
-	Mode                 string `validate:"required,oneof=silent filter search"`
+	Mode                 string `validate:"required,oneof=silent command"`
 	PackageName          string
 	Icon                 string
 	IconDark             string
@@ -32,17 +32,17 @@ type ScriptMetadatas struct {
 	Description          string
 }
 
-func (s *ScriptCommand) toSearchItem() SearchItem {
+func (s *ScriptCommand) toSearchItem() ListItem {
 	var primaryAction Action
 	var accessoryTitle string
-	if s.Mode == "filter" || s.Mode == "search" {
+	if s.Mode == "command" {
 		primaryAction = NewRunCommandAction("Run Command", s.Path)
 		accessoryTitle = "Command"
 	} else {
 		primaryAction = NewRunScriptAction("Run Script", s.Path)
 		accessoryTitle = "Script Command"
 	}
-	return SearchItem{
+	return ListItem{
 		IconSource:     s.Icon,
 		Title:          s.Title,
 		AccessoryTitle: accessoryTitle,
@@ -123,19 +123,18 @@ func ScanScriptDir(scriptDir string) ([]ScriptCommand, error) {
 func ScanScriptDirs() (scriptCommands []ScriptCommand, err error) {
 	commandDirs := make([]string, 0)
 	if os.Getenv("RAYCAST_COMMAND_DIR") != "" {
-		commandDirs = append(commandDirs, os.Getenv("RAYCAST_DATA_DIR"))
+		commandDirs = append(commandDirs, os.Getenv("RAYCAST_COMMAND_DIR"))
 	}
 	commandDirs = append(commandDirs, path.Join(xdg.DataHome, "raycast"))
 	for _, dataDir := range xdg.DataDirs {
 		commandDirs = append(commandDirs, path.Join(dataDir, "raycast"))
 	}
 
-	for _, dir := range commandDirs {
-		scriptDir := path.Join(dir, "raycast")
-		if _, err := os.Stat(scriptDir); os.IsNotExist(err) {
+	for _, commandDir := range commandDirs {
+		if _, err := os.Stat(commandDir); os.IsNotExist(err) {
 			continue
 		}
-		dirCommands, err := ScanScriptDir(scriptDir)
+		dirCommands, err := ScanScriptDir(commandDir)
 		if err != nil {
 			return nil, err
 		}

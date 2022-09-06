@@ -59,7 +59,10 @@ func main() {
 
 	// Create an instance of the app structure
 	app := NewApp()
-	app.loadRootItems()
+	err = app.loadRootItems()
+	if err != nil {
+		log.Fatalf("An error occured while fetching root items: %s", err)
+	}
 
 	// Create application with options
 	err = wails.Run(&options.App{
