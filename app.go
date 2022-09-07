@@ -81,20 +81,27 @@ func (a *App) RunScript(scriptPath string, args []string) (err error) {
 	return
 }
 
-func (a *App) RunListCommand(scriptPath string) (res ScriptResponse, err error) {
+func (a *App) RunListCommand(scriptPath string, args []string) (res ScriptResponse, err error) {
 	err = os.Chmod(scriptPath, 0755)
 	if err != nil {
 		return
 	}
 
-	cmd := exec.Command(scriptPath)
+	cmd := exec.Command(scriptPath, args...)
 	cmd.Dir = path.Dir(scriptPath)
 	output, err := cmd.Output()
 	if err != nil {
 		return
 	}
 	json.Unmarshal(output, &res)
-	runtime.LogDebugf(a.ctx, "%s", res)
+	for _, item := range res.List.Items {
+		for i, action := range item.Actions {
+			switch action.Type {
+			case "callback":
+				item.Actions[i] = NewRunCommandAction(action.Title, scriptPath, action.Args...)
+			}
+		}
+	}
 
 	err = validate.Struct(res)
 	return

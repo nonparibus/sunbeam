@@ -1,8 +1,14 @@
 package main
 
 type ScriptResponse struct {
-	Type      string     `json:"type" validate:"required"`
-	ListItems []ListItem `json:"list_items" validate:"dive"`
+	Type    string `json:"type" validate:"required,oneof=list details form exit"`
+	List    List   `json:"list" validate:"dive"`
+	Details string `json:"details"`
+	Form    string `json:"form"`
+}
+
+type List struct {
+	Items []ListItem `json:"items"`
 }
 
 type ListItem struct {
@@ -77,5 +83,5 @@ func NewRunScriptAction(title string, path string, args ...string) Action {
 }
 
 func NewRunCommandAction(title string, path string, args ...string) Action {
-	return Action{Type: RunCommand.String(), Icon: "raycast/icon-window-list-16.svg", Path: path, Args: args}
+	return Action{Title: title, Type: RunCommand.String(), Icon: "raycast/icon-window-list-16.svg", Path: path, Args: args}
 }

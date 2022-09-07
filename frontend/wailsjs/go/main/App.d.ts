@@ -10,6 +10,6 @@ export function OpenInBrowser(arg1:string):Promise<Error>;
 
 export function RootItems():Promise<Array<main.ListItem>>;
 
-export function RunListCommand(arg1:string):Promise<main.ScriptResponse>;
+export function RunListCommand(arg1:string,arg2:Array<string>):Promise<main.ScriptResponse>;
 
 export function RunScript(arg1:string,arg2:Array<string>):Promise<Error>;

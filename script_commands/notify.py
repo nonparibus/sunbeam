@@ -10,16 +10,6 @@ import sys
 import json
 import subprocess
 
-if len(sys.argv) > 1:
-    sentence = sys.argv[1]
-    print(
-        {
-            "type": "details",
-            "markdown": sentence,
-            "actions": [{"type": "copy-to-clipboard", "content": "sentence"}],
-        }
-    )
-    sys.exit(0)
 
 sentences = ["Hello World!", "Raycast is Awesome!"]
 
@@ -33,7 +23,7 @@ print(
                     "actions": [
                         {
                             "type": "callback",
-                            "title": "Copy Sentence",
+                            "title": "Callback",
                             "args": [sentence],
                         },
                         {"type": "copy-to-clipboard", "title": "Copy to Clipboard", "content": "sentence"},

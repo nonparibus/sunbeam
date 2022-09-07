@@ -18,8 +18,8 @@ export function RootItems() {
   return window['go']['main']['App']['RootItems']();
 }
 
-export function RunListCommand(arg1) {
-  return window['go']['main']['App']['RunListCommand'](arg1);
+export function RunListCommand(arg1, arg2) {
+  return window['go']['main']['App']['RunListCommand'](arg1, arg2);
 }
 
 export function RunScript(arg1, arg2) {

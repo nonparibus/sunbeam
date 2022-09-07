@@ -17,11 +17,14 @@ function buildKey(listItem: main.ListItem) {
 }
 
 export function Raycast() {
+  // TODO: add the dbus handler here to call script directly
+
   return <ListCommand fetcher={App.RootItems} />;
 }
 
 export function ListCommand({
-  fetcher, goBack
+  fetcher,
+  goBack,
 }: {
   fetcher: () => Promise<main.ListItem[]>;
   goBack?: () => void;
@@ -29,18 +32,27 @@ export function ListCommand({
   const inputRef = React.useRef<HTMLInputElement | null>(null);
   const listRef = React.useRef(null);
 
-  const [items, setItems] = useState<Record<string, main.ListItem>>({});
+  const [next, setNext] = useState<JSX.Element>();
+  const [response, setResponse] = useState<{
+    items?: Record<string, main.ListItem>;
+    isLoading: boolean;
+  }>({ isLoading: true });
   const [query, setQuery] = React.useState("");
   const [focusedValue, setFocusedValue] = React.useState("");
-  const focusedItem = items[focusedValue];
 
-  const [next, setNext] = useState<JSX.Element>();
+  const focusedItem = response.items?.[focusedValue];
 
   // Add root items on first load
   React.useEffect(() => {
-    fetcher().then((items) => {
-      setItems(Object.fromEntries(items.map((item) => [buildKey(item), item])));
-    });
+    fetcher()
+      .then((items) => {
+        const itemMap = Object.fromEntries(
+          items.map((item) => [buildKey(item), item])
+        );
+        setResponse({ items: itemMap, isLoading: false });
+        setFocusedValue(buildKey(items[0] || ""))
+      })
+      .catch((e) => runtime.LogError(JSON.stringify(e)));
   }, []);
 
   function handleAction(action: main.Action) {
@@ -53,11 +65,11 @@ export function ListCommand({
         App.CopyToClipboard(action.content);
         return;
       case "run-script":
-        App.RunScript(action.path, []);
+        App.RunScript(action.path, action.args || []);
         return;
       case "run-command":
         const fetcher = () =>
-          App.RunListCommand(action.path).then((res) => res.list_items);
+          App.RunListCommand(action.path, action.args || []).then((res) => res.list.items);
         setNext(
           <ListCommand fetcher={fetcher} goBack={() => setNext(undefined)} />
         );
@@ -77,7 +89,9 @@ export function ListCommand({
           value={focusedValue}
           onKeyDown={(e) => {
             if (e.key === "Escape") {
-              if (goBack) goBack()
+              if (query) {
+                setQuery("");
+              } else if (goBack) goBack();
             } else if (e.key === "Tab") {
               if (focusedItem?.fill) {
                 setQuery(focusedItem.fill);
@@ -97,18 +111,22 @@ export function ListCommand({
           <hr cmdk-raycast-loader="" />
           <Command.List ref={listRef}>
             <Command.Empty>No Result Found.</Command.Empty>
-            <Command.Group heading="Results">
-              {Object.entries(items || {}).map(([key, item]) => (
-                <Item
-                  item={item}
-                  key={key}
-                  value={key}
-                  onSelect={() => {
-                    handleAction(item.actions[0]);
-                  }}
-                />
-              ))}
-            </Command.Group>
+            {response.isLoading ? (
+              <Command.Loading>Loading Items ...</Command.Loading>
+            ) : (
+              <Command.Group heading="Results">
+                {Object.entries(response.items || {}).map(([key, item]) => (
+                  <Item
+                    item={item}
+                    key={key}
+                    value={key}
+                    onSelect={() => {
+                      handleAction(item.actions[0]);
+                    }}
+                  />
+                ))}
+              </Command.Group>
+            )}
           </Command.List>
 
           <div cmdk-raycast-footer="">
@@ -232,6 +250,7 @@ function RaycastMenu({
                 Preferences
               </Command.Item>
 
+              <Command.Separator />
               <Command.Item
                 onSelect={() => {
                   runtime.Quit();
@@ -330,11 +349,6 @@ function SubCommand({
                 <Command.Item onSelect={() => onAction(action)}>
                   <RaycastIcon src={action.icon} />
                   {action.title}
-                  {/* <div cmdk-raycast-submenu-shortcuts="">
-                    {action.shortcut.key ? (
-                      <Shortcut shortcut={action.shortcut} />
-                    ) : null}
-                  </div> */}
                 </Command.Item>
               ))}
             </Command.Group>
