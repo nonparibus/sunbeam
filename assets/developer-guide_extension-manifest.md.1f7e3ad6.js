@@ -1,1 +1,0 @@
-import{_ as e,c as t,o as n}from"./app.ecf32480.js";const f=JSON.parse('{"title":"","description":"","frontmatter":{},"headers":[],"relativePath":"developer-guide/extension-manifest.md"}'),a={name:"developer-guide/extension-manifest.md"};function o(s,r,i,c,d,p){return n(),t("div")}const m=e(a,[["render",o]]);export{f as __pageData,m as default};

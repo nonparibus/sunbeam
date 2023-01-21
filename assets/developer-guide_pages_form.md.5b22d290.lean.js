@@ -1,1 +1,0 @@
-import{_ as e,c as a,o as s,a as o}from"./app.ecf32480.js";const h=JSON.parse('{"title":"Form","description":"","frontmatter":{},"headers":[],"relativePath":"developer-guide/pages/form.md"}'),t={name:"developer-guide/pages/form.md"},n=o("",2),r=[n];function c(p,i,_,d,l,m){return s(),a("div",null,r)}const u=e(t,[["render",c]]);export{h as __pageData,u as default};
